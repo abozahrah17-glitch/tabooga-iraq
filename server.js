@@ -11,12 +11,25 @@ const MONGO_URI = process.env.MONGO_URI || null;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Resilient static path resolution
-const appStablePath = fs.existsSync(path.join(__dirname, '../app_stable'))
-    ? path.join(__dirname, '../app_stable')
-    : (fs.existsSync(path.join(__dirname, 'app_stable'))
-        ? path.join(__dirname, 'app_stable')
-        : path.join(process.cwd(), 'app_stable'));
+// Dynamic static path resolution
+const possibleAppStablePaths = [
+    path.join(__dirname, 'clean_code/app_stable'),
+    path.join(__dirname, 'clean_code'),
+    path.join(process.cwd(), 'clean_code/app_stable'),
+    path.join(process.cwd(), 'clean_code'),
+    path.join(__dirname, 'app_stable'),
+    path.join(__dirname, '../app_stable'),
+    path.join(process.cwd(), 'app_stable'),
+    process.cwd()
+];
+
+let appStablePath = process.cwd();
+for (const p of possibleAppStablePaths) {
+    if (fs.existsSync(path.join(p, 'index.html'))) {
+        appStablePath = p;
+        break;
+    }
+}
 
 // Serve light APK
 app.get('/tabooga.apk', (req, res) => {
@@ -37,6 +50,10 @@ app.use(express.static(appStablePath));
 app.get('/', (req, res) => {
     const possibleIndexPaths = [
         path.join(appStablePath, 'index.html'),
+        path.join(__dirname, 'clean_code/app_stable/index.html'),
+        path.join(__dirname, 'clean_code/index.html'),
+        path.join(process.cwd(), 'clean_code/app_stable/index.html'),
+        path.join(process.cwd(), 'clean_code/index.html'),
         path.join(__dirname, 'app_stable/index.html'),
         path.join(__dirname, '../app_stable/index.html'),
         path.join(process.cwd(), 'app_stable/index.html'),
