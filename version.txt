@@ -1,0 +1,4 @@
+﻿Benaa Iraq Application
+Version: 1.0.0-STABLE
+Date: 2026-07-09
+Description: Pristine version with Admin Panel, Bidding System, Analytics Modal, and all encoding bugs completely fixed.

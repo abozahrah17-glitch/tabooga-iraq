@@ -1,0 +1,3613 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log('ServiceWorker unregistered');
+                }
+            });
+        }
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>طابوقة | Tabooga</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* --- Settings & Dark Mode --- */
+        :root {
+            /* Light Mode Defaults */
+            --bg-body: linear-gradient(180deg, #E0F7FA 0%, #FFFFFF 40%);
+            --bg-container: linear-gradient(180deg, #E0F7FA 0%, #FFFFFF 40%);
+            --text-main: #1F2937;
+            --text-light: #6B7280;
+            --bg-card: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        body.dark-mode {
+            --bg-body: #111827;
+            --bg-container: #111827;
+            --text-main: #F3F4F6;
+            --text-light: #9CA3AF;
+            --bg-card: #1F2937;
+            --border-color: #374151;
+            --bg-app: #1F2937;
+            background: var(--bg-body);
+        }
+
+        body.dark-mode .app-container {
+            background: var(--bg-container);
+            box-shadow: none;
+        }
+
+        body.dark-mode .app-header,
+        body.dark-mode .bottom-nav,
+        body.dark-mode .results-sheet {
+            background: var(--bg-card);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .modern-select,
+        body.dark-mode input {
+            background: #374151;
+            border-color: #4B5563;
+            color: white;
+        }
+
+        body.dark-mode .shop-item,
+        body.dark-mode .plan-card,
+        body.dark-mode .glass-card,
+        body.dark-mode .package-card,
+        body.dark-mode .v-plan-card,
+        body.dark-mode .service-card {
+            background: var(--bg-card) !important;
+            border-color: var(--border-color);
+        }
+
+        /* Market Vertical List Styles */
+        .shop-grid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            padding: 0 !important;
+        }
+        .shop-item.glass-card {
+            padding: 12px 15px !important;
+            border-radius: 16px !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center;
+            gap: 15px;
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+        }
+        .shop-item.glass-card > div:first-child {
+            font-size: 2rem !important;
+            margin-bottom: 0 !important;
+            color: var(--primary) !important;
+            background: #f1f5f9;
+            width: 65px;
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            flex-shrink: 0;
+        }
+        .shop-item-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .shop-item.glass-card h4 {
+            font-size: 1.05rem !important;
+            margin: 0 0 5px !important;
+            white-space: normal !important;
+            line-height: 1.3;
+        }
+        .shop-item.glass-card .merchant-name {
+            font-size: 0.85rem !important;
+            color: var(--primary) !important;
+            margin: 0 0 5px !important;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .shop-item.glass-card .price-tag {
+            font-size: 0.95rem !important;
+            font-weight: 800 !important;
+            color: #10B981 !important;
+            margin: 0 !important;
+        }
+        .shop-item.glass-card .action-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .shop-item.glass-card button {
+            padding: 10px !important;
+            border-radius: 12px !important;
+            min-width: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        body.dark-mode .shop-item.glass-card {
+            background: #1f2937 !important;
+            border-color: #374151 !important;
+        }
+        body.dark-mode .shop-item.glass-card > div:first-child {
+            background: #374151;
+        }
+
+        /* Settings CSS */
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .settings-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 15px 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .settings-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+            background: #eef2ff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        body.dark-mode .settings-icon {
+            background: #374151;
+            color: #818CF8;
+        }
+
+        .settings-text h4 {
+            margin: 0 0 5px;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+
+        .settings-text p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
+        /* RTL support for toggle */
+        html[dir="rtl"] .slider:before {
+            left: auto;
+            right: 4px;
+        }
+
+        html[dir="rtl"] input:checked+.slider:before {
+            transform: translateX(-22px);
+        }
+
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338ca;
+            --secondary: #10B981;
+            --bg-app: #f3f4f6;
+            --text-main: #1F2937;
+            --text-light: #6B7280;
+            --white: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --header-height: 60px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(180deg, #E0F7FA 0%, #FFFFFF 40%);
+            color: var(--text-main);
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #E0F7FA 0%, #FFFFFF 40%);
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            padding-bottom: 80px;
+        }
+
+        @media (max-width: 480px) {
+            .app-container {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+            }
+        }
+
+        .app-header {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .logo-text h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .logo-text .subtitle {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            letter-spacing: 0.5px;
+        }
+
+        .lang-switcher select {
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .app-content {
+            padding: 20px;
+            background: transparent;
+            min-height: calc(100vh - var(--header-height));
+        }
+
+        .app-view {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .app-view.active-view {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dashboard-banner {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 10px 0;
+        }
+
+        .welcome-text h2 {
+            margin: 0 0 8px;
+            color: var(--text-main);
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        .welcome-text p {
+            margin: 0;
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .market-ticker-box {
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #1e1b4b;
+            /* Deep Indigo for clear text on blur */
+            border-radius: 16px;
+            padding: 10px 0;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            z-index: 5;
+        }
+
+        body.dark-mode .market-ticker-box {
+            background: rgba(0, 0, 0, 0.3);
+            color: #e2e8f0;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .ticker-wrap {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .ticker-move {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker 90s linear infinite;
+            min-width: 100%;
+        }
+
+        .ticker-item {
+            display: inline-block;
+            padding: 0 35px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .ticker-val {
+            color: #059669;
+            /* Distinct success green for readability */
+            font-weight: 800;
+            margin-right: 4px;
+        }
+
+        body.dark-mode .ticker-val {
+            color: #34d399;
+            /* Brighter green for dark mode */
+        }
+
+        .ticker-item i {
+            margin-left: 8px;
+            opacity: 0.9;
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translate3d(100%, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(-100%, 0, 0);
+            }
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .action-card:active {
+            transform: scale(0.98);
+        }
+
+        .action-card i {
+            font-size: 1.6rem;
+            color: var(--primary);
+        }
+
+        /* --- UI Enhancements (Build Calculator) --- */
+        .receipt-container {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            margin-top: 25px;
+            position: relative;
+            overflow: hidden;
+            animation: slideUpFade 0.5s ease-out;
+        }
+
+        .receipt-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #4f46e5, #0ea5e9);
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .receipt-row:last-child {
+            border-bottom: none;
+            padding-bottom: 5px;
+        }
+
+        .receipt-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .receipt-value {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .total-section {
+            background: #f8fafc;
+            margin: 15px -24px -24px;
+            padding: 24px;
+            text-align: center;
+            border-top: 1px dashed #cbd5e1;
+        }
+
+        body.dark-mode .total-section {
+            background: #1e293b;
+            border-top-color: #475569;
+        }
+
+        .grand-total-amount {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #4f46e5;
+            margin: 10px 0;
+            display: block;
+        }
+
+        .market-impact-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* --- End UI Enhancements --- */
+
+        /* 1. Hero Section Gradient */
+        .dashboard-banner .welcome-text {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid #bae6fd;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        body.dark-mode .dashboard-banner .welcome-text {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border-color: #374151;
+        }
+
+        /* 2. Input Labels with Icons */
+        .input-group label {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .input-group label i {
+            margin-left: 8px !important;
+            color: var(--primary);
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* 3. Selection Cards (Radio Groups) - Enhanced Active State */
+        .finish-card input:checked+.f-content,
+        .mat-option input:checked+.mat-box {
+            border: 2px solid var(--primary);
+            background: #eff6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        body.dark-mode .finish-card input:checked+.f-content,
+        body.dark-mode .mat-option input:checked+.mat-box {
+            background: rgba(79, 70, 229, 0.1);
+            border-color: #818cf8;
+        }
+
+        /* 4. Result Box - "Receipt" Style */
+        .renov-result-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            /* More rounded */
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top Accent Line */
+        .renov-result-box::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        body.dark-mode .renov-result-box {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        .total-badge {
+            background: #ffffff;
+            color: #000000;
+            border: 3px solid #10B981;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 900;
+            display: inline-block;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+            font-size: 1.8rem;
+            margin: 10px 0;
+        }
+
+        /* Animation for Result Appearance */
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .renov-result-box.hidden {
+            display: none;
+        }
+
+        .renov-result-box:not(.hidden) {
+            display: block;
+            animation: slideUpFade 0.5s ease-out forwards;
+        }
+
+        /* --- End UI Enhancements --- */
+
+        .action-card span {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .glass-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .shop-price {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        /* --- Action Buttons --- */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .act-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .act-btn:active {
+            transform: scale(0.9);
+        }
+
+        .act-btn.whatsapp {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        }
+
+        .act-btn.call {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        .act-btn.chat {
+            background: linear-gradient(135deg, #06B6D4 0%, #0891B2 100%);
+            width: auto;
+            padding: 0 12px;
+            border-radius: 18px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            gap: 5px;
+        }
+
+        /* --- Floating Action Button (FAB) --- */
+        .fab-btn {
+            position: fixed;
+            bottom: 90px;
+            left: 20px;
+            /* Arabic RTL support might require checking dir */
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            z-index: 90;
+            cursor: pointer;
+            animation: pulse-float 3s infinite;
+            transition: transform 0.2s;
+        }
+
+        /* Adjust logic if LTR */
+        html[dir="rtl"] .fab-btn {
+            left: 20px;
+            right: auto;
+        }
+
+        html[dir="ltr"] .fab-btn {
+            right: 20px;
+            left: auto;
+        }
+
+        .fab-btn i {
+            font-size: 1.2rem;
+        }
+
+        .fab-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* --- Ad Slider Critical Styles --- */
+        .ad-background-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .ad-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            background-repeat: no-repeat;
+        }
+
+        .ad-slide.active {
+            opacity: 1;
+        }
+
+        /* --- Hero Banner Styles (Redesign) --- */
+        .hero-banner {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            /* Fixed height for visibility */
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: flex-end;
+            /* Text at bottom */
+            justify-content: flex-start;
+            background-color: #1e293b;
+            /* Fallback color (Slate-800) */
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 10%, rgba(0, 0, 0, 0.2) 60%, rgba(0, 0, 0, 0.1) 100%);
+            z-index: 3;
+            /* Overlay on top of image */
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 4;
+            /* Text on top of overlay */
+            padding: 20px;
+            width: 100%;
+            color: white;
+        }
+
+        .hero-title {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: -0.5px;
+        }
+
+        .hero-subtitle {
+            margin: 5px 0 0;
+            font-size: 0.95rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* --- Ad Slider Styles --- */
+        .ad-background-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .ad-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .ad-slide.active {
+            opacity: 0.8;
+            /* Increased visibility to 80% as requested */
+        }
+
+        @keyframes pulse-float {
+            0% {
+                transform: translateY(0);
+                box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            }
+
+            50% {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(79, 70, 229, 0.5);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+                box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+            }
+        }
+
+        /* Input Group Styles */
+        .input-group {
+            margin-bottom: 12px;
+            text-align: right;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .modern-select,
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #ffffff;
+            color: var(--text-main);
+        }
+
+        .modern-select:focus,
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .segment-control {
+            display: flex;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 12px;
+            gap: 5px;
+        }
+
+        .segment-control input {
+            display: none;
+        }
+
+        .segment-control label {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            margin: 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .segment-control input:checked+label {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-weight: 700;
+        }
+
+        .finish-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .finish-item input {
+            display: none;
+        }
+
+        .finish-item span {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 5px;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .finish-item span i {
+            font-size: 1.4rem;
+        }
+
+        .finish-item input:checked+span {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .icon-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .icon-selector label {
+            margin: 0;
+        }
+
+        .icon-selector input {
+            display: none;
+        }
+
+        .icon-selector .icon-box {
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            border: 2px solid var(--border-color);
+        }
+
+        .icon-selector input:checked+.icon-box {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .cta-button {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.25);
+            transition: opacity 0.2s;
+        }
+
+        .cta-button:active {
+            opacity: 0.9;
+        }
+
+        .cta-button.secondary {
+            background: white;
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+            box-shadow: none;
+        }
+
+        .back-btn {
+            background: white;
+            border: 1px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            height: 65px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom, 6px);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 0.72rem;
+            padding: 6px 4px;
+            border-radius: 12px;
+            transition: color 0.2s;
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+        }
+
+        .nav-item i {
+            font-size: 1.35rem;
+            margin-bottom: 2px;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .results-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            padding: 30px 24px;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.1);
+            z-index: 200;
+            transform: translateY(0);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .results-sheet.hidden {
+            transform: translateY(110%);
+            display: flex;
+        }
+
+        .sheet-handle {
+            width: 50px;
+            height: 5px;
+            background: #e5e7eb;
+            border-radius: 100px;
+            margin-bottom: 25px;
+        }
+
+        .big-price {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 10px 0 25px;
+        }
+
+        .breakdown-list {
+            width: 100%;
+        }
+
+        .mini-list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 1rem;
+        }
+
+        .mini-list-item span:last-child {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .close-sheet,
+        .close-sheet-abs {
+            background: #f3f4f6;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 14px;
+            color: var(--text-main);
+            font-weight: 700;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .close-sheet-abs {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .shop-grid,
+        .plans-masonry {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding-bottom: 30px;
+        }
+
+        .shop-item,
+        .plan-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+        }
+
+        .shop-img {
+            height: 140px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 2.5rem;
+        }
+
+        .shop-info {
+            padding: 12px;
+        }
+
+        .shop-info h4 {
+            margin: 0 0 6px;
+            font-size: 0.95rem;
+        }
+
+        .shop-price {
+            color: var(--secondary);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .chips-filter {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            background: #f3f4f6;
+            border: 1px solid transparent;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .chip.active {
+            background: var(--text-main);
+            color: white;
+        }
+
+        .business-hero {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px 24px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+        }
+
+        .business-hero h1 {
+            font-size: 1.6rem;
+            margin: 0 0 10px;
+        }
+
+        .business-hero p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .packages-scroll {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 5px 30px;
+        }
+
+        .package-card {
+            min-width: 280px;
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .package-card.gold {
+            border: 2px solid #fbbf24;
+            background: #fffbeb;
+        }
+
+        .package-card.silver {
+            border: 2px solid #cbd5e1;
+        }
+
+        .pkg-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+
+        .package-card.gold .pkg-header i {
+            color: #fbbf24;
+            font-size: 1.2rem;
+        }
+
+        .pkg-price {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .pkg-price small {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .pkg-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .pkg-features li i {
+            color: var(--secondary);
+        }
+
+        .gold-btn {
+            background: #fbbf24;
+            color: black;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .renov-result-box {
+            margin-top: 25px;
+            padding: 24px;
+            background: white;
+            border: 2px solid #bbf7d0;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .renov-result-box .total-badge {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .pro-card {
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .pro-avatar {
+            width: 56px;
+            height: 56px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 1.5rem;
+        }
+
+        .pro-info h4 {
+            margin: 0 0 4px;
+            font-size: 1.05rem;
+        }
+
+        .pro-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .pro-call {
+            margin-right: auto;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #ecfccb;
+            color: #3f6212;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+
+        .gateway-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .gw-box {
+            padding: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .gateway-opt input:checked+.gw-box {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        /* EXTRA FORM INPUTS FIX */
+        .radio-segment {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 12px;
+            gap: 4px;
+        }
+
+        .icon-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .icon-selector label {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .icon-selector input {
+            display: none;
+        }
+
+        .icon-box {
+            padding: 12px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--text-light);
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .icon-selector input:checked+.icon-box,
+        .icon-box.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .icon-box:hover:not(.active) {
+            border-color: var(--primary-light);
+            background: #f8fafc;
+        }
+
+        .radio-segment input {
+            display: none;
+        }
+
+        .radio-segment label {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .radio-segment input:checked+label {
+            background: #ffffff;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            font-weight: 700;
+        }
+
+        .material-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .mat-option input {
+            display: none;
+        }
+
+        .mat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 4px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mat-option input:checked+.mat-box {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        .finish-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .finish-card input {
+            display: none;
+        }
+
+        .f-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 4px;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+
+        .finish-card input:checked+.f-content {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Renovation Grid */
+        .renov-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .renov-check {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .renov-check input {
+            display: none;
+        }
+
+        .renov-check span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .renov-check input:checked+span {
+            color: var(--primary);
+        }
+
+        .renov-check:has(input:checked) {
+            border-color: var(--primary);
+            background: #eef2ff;
+        }
+
+        /* --- CRITICAL LAYOUT FIXES --- */
+        .hero-banner {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            /* Enforce height */
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .hero-banner .ad-background-slider,
+        .hero-banner .hero-overlay,
+        .hero-banner .hero-content {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-banner .ad-background-slider {
+            z-index: 0;
+        }
+
+        .hero-banner .hero-overlay {
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero-banner .hero-content {
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* AI Scanner Overlay */
+        #scannerOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        #scannerOverlay.hidden {
+            display: none !important;
+        }
+
+        #adminModal.hidden {
+            display: none !important;
+        }
+
+        #customerRequestsModal.hidden {
+            display: none !important;
+        }
+
+        #businessDashboardModal.hidden {
+            display: none !important;
+        }
+
+        #scannerVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 50%;
+            border: 2px solid rgba(16, 185, 129, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.6);
+            pointer-events: none;
+        }
+
+        .scanner-laser {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #10b981;
+            box-shadow: 0 0 15px #10b981;
+            animation: laserScan 2.5s ease-in-out infinite;
+        }
+
+        @keyframes laserScan {
+            0% {
+                top: 0;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        .scanner-ui {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 30px;
+        }
+
+        .cap-btn {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cap-btn::after {
+            content: '';
+            width: 55px;
+            height: 55px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .scanner-close {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .scanner-hint {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            text-align: center;
+            font-size: 0.9rem;
+            background: rgba(16, 185, 129, 0.8);
+            backdrop-filter: blur(5px);
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 10;
+        }
+    </style>
+
+    <!-- PWA Setup -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Main Layout Grid -->
+        <div class="app-layout">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fa-solid fa-helmet-safety"></i></div>
+                    <div class="logo-text">
+                        <h1>طابوقة</h1>
+                        <div class="subtitle">المنصة الإنشائية الشاملة</div>
+                    </div>
+                </div>
+                <div class="header-tools" style="display: flex; gap: 10px;">
+
+                    <button id="headerNotifBtn" onclick="handleNotificationClick()"
+                        style="position: relative; border: none; background: transparent; font-size: 1.3rem; cursor: pointer; color: var(--text-main); padding: 4px;" title="التنبيهات والطلبات الجديدة">
+                        <i class="fa-solid fa-bell" style="color:#f59e0b;"></i>
+                        <span id="headerNotifBadge" style="display: none; position: absolute; top: -4px; right: -6px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-radius: 12px; padding: 2px 6px; font-size: 0.68rem; font-weight: 900; box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);">0</span>
+                    </button>
+
+                    <button onclick="switchView('settings')"
+                        style="border: none; background: transparent; font-size: 1.2rem; cursor: pointer; color: var(--text-main);"><i
+                            class="fa-solid fa-gear"></i></button>
+                    <button onclick="switchView('requests-board')"
+                        style="border: none; background: transparent; font-size: 1.2rem; cursor: pointer; color: var(--text-main);" title="متابعة طلباتي"><i
+                            class="fa-solid fa-list-check"></i></button>
+                    <div class="lang-switcher">
+                        <select id="langSelect" onchange="changeLanguage(this.value)">
+                            <option value="ar">AR</option>
+                            <option value="en">EN</option>
+                        </select>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <div class="app-content" id="main-content">
+                <!-- View: Home (Build Calculator) -->
+                <section id="home" class="app-view active-view">
+                    <div class="dashboard-banner"
+                        style="position: relative; overflow: hidden; border-radius: 20px; padding: 0;">
+                        <!-- Ad Slider Background -->
+                        <div id="homeAdSlider" class="ad-background-slider"
+                            style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:0;"></div>
+
+                        <!-- Content Wrapper -->
+                        <div style="position: relative; z-index: 1; padding: 20px 0;">
+                            <div class="welcome-text"
+                                style="background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); margin: 0 20px 10px; border-radius: 12px; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); text-align: center;">
+                                <h2 data-i18n="hero_title"
+                                    style="color: #1e1b4b; font-size: 1.3rem; margin-bottom: 2px; text-shadow: 0 1px 2px rgba(255,255,255,0.5);">
+                                    ابنِ بيتك بثقة
+                                </h2>
+                                <p data-i18n="hero_desc"
+                                    style="color: #312e81; font-weight: 700; font-size: 0.85rem; margin: 0;">أدق حاسبة
+                                    تكاليف في السوق العراقي</p>
+                            </div>
+                            <!-- Market Ticker - Dynamic Glass Style -->
+                            <div class="market-ticker-box" style="margin: 0 15px;">
+                                <div class="ticker-wrap">
+                                    <div class="ticker-move" id="liveTickerMove">
+                                        <!-- Content populated by JS -->
+                                        <div class="ticker-item"><i class="fa-solid fa-spinner fa-spin"></i> جاري تحميل
+                                            أسعار السوق...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Premium AI Market Intelligence Section (Compact) -->
+                    <div class="market-intelligence-box compact-ai-widget" style="padding: 12px 15px; margin-bottom: 20px; border-radius:12px; border: 1px solid #E2E8F0; background: #F8FAFC; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; background: #EEF2FF; display: flex; align-items: center; justify-content: center; color: #4F46E5;">
+                                <i class="fa-solid fa-chart-line fa-beat-fade"></i>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0 0 2px; font-size: 0.9rem; font-weight: 700; color: #1e293b;">مؤشر السوق والأسعار</h3>
+                                <div style="font-size: 0.75rem; color: #64748b;">
+                                    <span id="live-usd-rate" style="font-weight: 800; color: #10B981;">1,530 IQD</span> (استقرار نسبي)
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="refreshMarketData()" style="background: transparent; border: 1px solid #CBD5E1; color: #64748b; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; transition: 0.2s;">
+                            <i id="sync-spinner" class="fa-solid fa-arrows-rotate"></i> تحديث
+                        </button>
+                    </div>
+
+                    <!-- Hidden AI Fields to prevent JS crash -->
+                    <div style="display:none;">
+                        <div id="usd-trend-icon"></div>
+                        <div id="usd-status-text"></div>
+                        <div id="market-index"></div>
+                        <div id="market-rec-text"></div>
+                        <marquee id="stock-marquee"></marquee>
+                        <div id="ai-advice-container"></div>
+                        <p id="ai-advice-text"></p>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="section-title">
+                            <h3><i class="fa-solid fa-calculator" style="color:var(--primary); margin-left:10px;"></i>
+                                حاسبة الكلفة</h3>
+                        </div>
+                        <form id="buildForm">
+                            <div class="input-group">
+                                <label><i class="fa-solid fa-map-location-dot"
+                                        style="margin-left:5px; color:var(--primary);"></i> المحافظة</label>
+                                <select id="govSelect" class="modern-select">
+                                    <option value="baghdad">بغداد</option>
+                                    <option value="basra">البصرة</option>
+                                    <option value="erbil">أربيل</option>
+                                    <option value="nineveh">نينوى</option>
+                                    <option value="babylon">بابل</option>
+                                    <option value="najaf">النجف</option>
+                                    <option value="karbala">كربلاء</option>
+                                    <option value="anbar">الأنبار</option>
+                                    <option value="sulaymaniyah">السليمانية</option>
+                                    <option value="thiqar">ذي قار</option>
+                                    <option value="kirkuk">كركوك</option>
+                                    <option value="wasit">واسط</option>
+                                    <option value="diyala">ديالى</option>
+                                    <option value="muthanna">المثنى</option>
+                                    <option value="missan">ميسان</option>
+                                    <option value="qadisiya">الديوانية</option>
+                                    <option value="salahaddin">صلاح الدين</option>
+                                    <option value="dohuk">دهوك</option>
+                                </select>
+                            </div>
+
+                            <div class="form-grid-2">
+                                <div class="input-group">
+                                    <label data-i18n="lbl_land"><i class="fa-solid fa-ruler-combined"
+                                            style="margin-left:5px; color:var(--primary);"></i> مساحة الأرض (م²)</label>
+                                    <input type="number" id="landArea" placeholder="200" required>
+                                </div>
+                                <div class="input-group">
+                                    <label data-i18n="lbl_build"><i class="fa-solid fa-house-chimney"
+                                            style="margin-left:5px; color:var(--primary);"></i> مساحة البناء
+                                        (م²)</label>
+                                    <input type="number" id="buildArea" placeholder="150" required>
+                                </div>
+                            </div>
+
+                            <!-- New Sanitary Configuration Suite -->
+                            <div class="input-group"
+                                style="background: rgba(79, 70, 229, 0.03); padding: 15px; border-radius: 16px; border: 1px solid rgba(79, 70, 229, 0.1); margin-bottom: 20px;">
+                                <label
+                                    style="color: var(--primary); font-weight: 800; margin-bottom: 12px; display: block; border-bottom:1px solid rgba(79, 70, 229, 0.1); padding-bottom:10px;">
+                                    <i class="fa-solid fa-faucet-drip" style="margin-left:5px;"></i> تفاصيل التأسيسات
+                                    الصحية والسباكة
+                                </label>
+
+                                <div
+                                    style="font-size: 0.85rem; color: var(--text-dark); font-weight:700; margin-bottom: 6px;">
+                                    عدد المجاميع الصحية والخدمية</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 10px;">(يشمل
+                                    إجمالي غرف الحمامات + المطابخ + المغاسل)</div>
+                                <div class="icon-selector" style="margin-bottom: 15px;">
+                                    <label><input type="radio" name="wc_radio" value="1" onclick="setWCCount(1)">
+                                        <div class="icon-box">1</div>
+                                    </label>
+                                    <label><input type="radio" name="wc_radio" value="2" onclick="setWCCount(2)">
+                                        <div class="icon-box">2</div>
+                                    </label>
+                                    <label><input type="radio" name="wc_radio" value="3" checked
+                                            onclick="setWCCount(3)">
+                                        <div class="icon-box">3</div>
+                                    </label>
+                                    <label><input type="radio" name="wc_radio" value="4" onclick="setWCCount(4)">
+                                        <div class="icon-box">4</div>
+                                    </label>
+                                    <label><input type="radio" name="wc_radio" value="5" onclick="setWCCount(5)">
+                                        <div class="icon-box">5+</div>
+                                    </label>
+                                    <input type="hidden" id="wcCount" value="3">
+                                </div>
+
+                                <div
+                                    style="font-size: 0.85rem; color: var(--text-dark); font-weight:700; margin-top:20px; margin-bottom: 6px;">
+                                    نوع شبكة الأنابيب المطلوبة</div>
+                                <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 15px;">(يؤثر
+                                    تأثيراً مباشراً على تكلفة المواد وأجور العمل)</div>
+                                <div class="radio-segment" style="margin-bottom: 5px;">
+                                    <input type="radio" name="plumbing_system" id="plumbing_ppr" value="ppr" checked>
+                                    <label for="plumbing_ppr" style="font-size:0.85rem;">شبكة كاوية تقليدية
+                                        (PPR)</label>
+                                    <input type="radio" name="plumbing_system" id="plumbing_pex" value="pex">
+                                    <label for="plumbing_pex" style="font-size:0.85rem;">نظام التوزيع المركزي (دفن
+                                        ألماني PEX)</label>
+                                </div>
+
+                                <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 8px;">إضافات
+                                    وتجهيزات خارجية</div>
+                                <div class="renov-grid" style="grid-template-columns: 1fr; gap: 8px;">
+                                    <label class="renov-check" style="padding: 10px;">
+                                        <input type="checkbox" id="extra_ext_wc" value="ext_wc">
+                                        <span><i class="fa-solid fa-person-walking-arrow-right"></i> صحيات خارجية
+                                            للحديقة</span>
+                                    </label>
+                                    <label class="renov-check" style="padding: 10px;">
+                                        <input type="checkbox" id="extra_roof_station" value="roof_station">
+                                        <span><i class="fa-solid fa-arrow-up-from-ground-water"></i> تأسيسات السطح (مضخة
+                                            + سخان)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label data-i18n="lbl_floors"><i class="fa-solid fa-layer-group"
+                                        style="margin-left:5px; color:var(--primary);"></i> عدد الطوابق</label>
+                                <div class="radio-segment">
+                                    <input type="radio" name="floors_seg" id="f1" value="1" checked
+                                        onclick="setFloors(1)">
+                                    <label for="f1" data-i18n="opt_floor1">طابق 1</label>
+                                    <input type="radio" name="floors_seg" id="f2" value="2" onclick="setFloors(2)">
+                                    <label for="f2" data-i18n="opt_floor2">طابقين</label>
+                                    <input type="radio" name="floors_seg" id="f3" value="3" onclick="setFloors(3)">
+                                    <label for="f3" data-i18n="opt_floor3">3 طوابق</label>
+                                </div>
+                                <input type="hidden" id="floors" value="1">
+                            </div>
+
+                            <div class="input-group">
+                                <label><i class="fa-solid fa-bars-progress"
+                                        style="margin-left:5px; color:var(--primary);"></i> مرحلة البناء (نطاق
+                                    العمل)</label>
+                                <div class="radio-segment">
+                                    <input type="radio" name="build_scope" id="scope_full" value="full" checked
+                                        onclick="window.buildScope='full'">
+                                    <label for="scope_full">تسليم مفتاح</label>
+                                    <input type="radio" name="build_scope" id="scope_structure" value="structure"
+                                        onclick="window.buildScope='structure'">
+                                    <label for="scope_structure">هيكل فقط (عظم)</label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label data-i18n="lbl_mat_type"><i class="fa-solid fa-cubes-stacked"
+                                        style="margin-left:5px; color:var(--primary);"></i> مواد البناء</label>
+                                <div class="material-options">
+                                    <label class="mat-option">
+                                        <input type="radio" name="build_mat" value="brick" checked>
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-layer-group"></i>
+                                            <span data-i18n="mat_brick">طابوق</span>
+                                        </div>
+                                    </label>
+                                    <label class="mat-option">
+                                        <input type="radio" name="build_mat" value="thermo">
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-border-all"></i>
+                                            <span data-i18n="mat_thermo">ثرمستون</span>
+                                        </div>
+                                    </label>
+                                    <label class="mat-option">
+                                        <input type="radio" name="build_mat" value="block">
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-cube"></i>
+                                            <span data-i18n="mat_block">بلوك</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label data-i18n="lbl_build_roof"><i class="fa-solid fa-layer-group"
+                                        style="margin-left:5px; color:var(--primary);"></i> نوع السقف</label>
+                                <div class="material-options">
+                                    <label class="mat-option">
+                                        <input type="radio" name="build_roof" value="normal" checked>
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-grip-lines"></i>
+                                            <span data-i18n="roof_normal">صب عادي</span>
+                                        </div>
+                                    </label>
+                                    <label class="mat-option">
+                                        <input type="radio" name="build_roof" value="hurdi">
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-box-open"></i>
+                                            <span data-i18n="roof_hurdi">هوردي / فلين</span>
+                                        </div>
+                                    </label>
+                                    <label class="mat-option">
+                                        <input type="radio" name="build_roof" value="akada">
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-bars-staggered"></i>
+                                            <span data-i18n="roof_akada">عكادة (شيلمان)</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label data-i18n="lbl_finish"><i class="fa-solid fa-paint-roller"
+                                        style="margin-left:5px; color:var(--primary);"></i> التشطيب</label>
+                                <div class="finish-options">
+                                    <label class="finish-card">
+                                        <input type="radio" name="finish" value="commercial">
+                                        <div class="f-content">
+                                            <i class="fa-solid fa-star-half-stroke"></i>
+                                            <span data-i18n="fin_comm">تجاري</span>
+                                        </div>
+                                    </label>
+                                    <label class="finish-card">
+                                        <input type="radio" name="finish" value="average" checked>
+                                        <div class="f-content active">
+                                            <i class="fa-solid fa-star"></i>
+                                            <span data-i18n="fin_avg">جيد</span>
+                                        </div>
+                                    </label>
+                                    <label class="finish-card">
+                                        <input type="radio" name="finish" value="premium">
+                                        <div class="f-content">
+                                            <i class="fa-solid fa-crown"></i>
+                                            <span data-i18n="fin_prem">VIP</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="cta-button" data-i18n="btn_calc" style="margin-top:20px;">احسب
+                                الكلفة</button>
+                        </form>
+
+                        <!-- Results Container (New organized receipt style) -->
+                        <div id="buildResult" class="receipt-container hidden" style="display:none;">
+                            <div class="result-header" style="text-align:center; margin-bottom: 15px;">
+                                <div id="market-badge" class="market-impact-badge">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                    <span>محدث حسب سعر السوق الآن</span>
+                                </div>
+                                <h4 style="margin:0; font-size: 1.1rem;" data-i18n="res_title">تفاصيل الكلفة النهائية
+                                </h4>
+                            </div>
+
+                            <div class="receipt-body">
+                                <div class="receipt-row">
+                                    <div class="receipt-label"><i class="fa-solid fa-trowel-bricks"></i> كلفة الهيكل
+                                        (العظم)</div>
+                                    <div id="resStructure" class="receipt-value" style="color:#ea580c;">0 د.ع</div>
+                                </div>
+                                <div id="finishReceiptRow" class="receipt-row">
+                                    <div class="receipt-label"><i class="fa-solid fa-paint-roller"></i> كلفة التشطيب
+                                    </div>
+                                    <div id="resFinishing" class="receipt-value" style="color:#2563eb;">0 د.ع</div>
+                                </div>
+
+                                <!-- Injected items from JS -->
+                                <div id="structBreakdownList" style="margin-top: 10px;"></div>
+                            </div>
+
+                            <div class="total-section">
+                                <span
+                                    style="font-size: 0.85rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px;">المجموع
+                                    الكلي التقديري</span>
+                                <span id="buildTotalDisplay" class="grand-total-amount">0 د.ع</span>
+                                <div style="font-size: 0.75rem; color: #10b981; font-weight: 600;">
+                                    <i class="fa-solid fa-shield-check"></i> تقديرات مبنية على الأسعار اللحظية للمواد
+                                    والعمل
+                                </div>
+
+                                <div id="pdfBtnContainer"></div>
+                            </div>
+                        </div>
+                </section> <!-- Restored missing </section> tag -->
+
+                <!-- View: Renovation -->
+                <section id="renovation" class="app-view">
+                    <!-- Hero Header (Ad Background) -->
+                    <!-- Hero Header (Redesigned) -->
+                    <div class="hero-banner">
+                        <div id="renovAdSlider" class="ad-background-slider">
+                            <div class="ad-slide active" style="opacity: 0.8;"></div>
+                        </div>
+                        <div class="hero-overlay"></div>
+                        <div class="hero-content">
+                            <h2 class="hero-title" data-i18n="nav_renov">ترميم</h2>
+                            <p class="hero-subtitle">حاسبة تكاليف ترميم الغرف</p>
+                        </div>
+                    </div>
+
+
+                    <!-- Intro Card (Compact) -->
+                    <!-- Intro Card (Clean) -->
+                    <div
+                        style="background: white; border-radius: 12px; padding: 12px 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0;">
+                        <div
+                            style="width: 45px; height: 45px; min-width: 45px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
+                            <i class="fa-solid fa-paint-roller"></i>
+                        </div>
+                        <div style="text-align: right;">
+                            <h3 style="margin: 0 0 3px; color: #1e293b; font-size: 1rem; font-weight: 700;"
+                                data-i18n="renov_intro_title">جدد مساحتك بذكاء</h3>
+                            <!-- Floating Action Button: Register -->
+                            <button class="fab-register" onclick="openRegistration('con')"
+                                style="position:fixed; bottom:80px; left:20px; width:60px; height:60px; border-radius:50%; background:var(--primary); color:white; border:none; box-shadow:0 4px 15px rgba(79, 70, 229, 0.4); display:flex; align-items:center; justify-content:center; font-size:1.5rem; z-index:100;">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span
+                                    style="position:absolute; right:70px; background:white; color:var(--text-main); padding:5px 12px; border-radius:8px; font-size:0.8rem; font-weight:600; white-space:nowrap; box-shadow:0 2px 10px rgba(0,0,0,0.1); border:1px solid #eee;"
+                                    data-i18n="btn_register_pro">انضم للخبراء</span>
+                            </button>
+                            <p style="margin: 0; color: #64748b; font-size: 0.8rem; line-height: 1.4;"
+                                data-i18n="renov_intro_desc">احسب تكاليف الترميم بدقة.</p>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <form id="renovForm">
+                            <div class="input-group">
+                                <label>المحافظة</label>
+                                <select id="renovGovSelect" class="modern-select">
+                                    <option value="baghdad">بغداد</option>
+                                    <option value="basra">البصرة</option>
+                                    <option value="erbil">أربيل</option>
+                                    <option value="nineveh">نينوى</option>
+                                    <option value="babylon">بابل</option>
+                                    <option value="najaf">النجف</option>
+                                    <option value="karbala">كربلاء</option>
+                                    <option value="anbar">الأنبار</option>
+                                    <option value="sulaymaniyah">السليمانية</option>
+                                </select>
+                            </div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                                <div class="input-group">
+                                    <label data-i18n="lbl_len">الطول (م)</label>
+                                    <input type="number" id="roomLen" placeholder="0">
+                                </div>
+                                <div class="input-group">
+                                    <label data-i18n="lbl_wid">العرض (م)</label>
+                                    <input type="number" id="roomWid" placeholder="0">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>عدد الجدران</label>
+                                <div class="radio-segment">
+                                    <input type="radio" name="walls" id="w4" value="4" checked>
+                                    <label for="w4">4 جدران</label>
+                                    <input type="radio" name="walls" id="w3" value="3">
+                                    <label for="w3">3 جدران</label>
+                                    <input type="radio" name="walls" id="w2" value="2">
+                                    <label for="w2">جدارين</label>
+                                </div>
+                            </div>
+
+
+
+                            <div class="input-group">
+                                <label data-i18n="lbl_room_count">عدد الغرف</label>
+                                <input type="number" id="renovRoomCount" value="1" min="1">
+                            </div>
+
+                            <div class="input-group">
+                                <label data-i18n="lbl_mat_type">مواد البناء (لبناء غرفة
+                                    جديدة)</label>
+                                <div class="material-options">
+                                    <label class="mat-option">
+                                        <input type="radio" name="renov_mat" value="brick" checked>
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-layer-group"></i>
+                                            <span data-i18n="mat_brick">طابوق</span>
+                                        </div>
+                                    </label>
+                                    <label class="mat-option">
+                                        <input type="radio" name="renov_mat" value="thermo">
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-border-all"></i>
+                                            <span data-i18n="mat_thermo">ثرمستون</span>
+                                        </div>
+                                    </label>
+                                    <label class="mat-option">
+                                        <input type="radio" name="renov_mat" value="block">
+                                        <div class="mat-box">
+                                            <i class="fa-solid fa-cube"></i>
+                                            <span data-i18n="mat_block">بلوك</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label data-i18n="lbl_renov_type">نوع العمل المطلوب</label>
+                                <div class="renov-grid">
+                                    <label class="renov-check">
+                                        <input type="checkbox" value="build_room" class="renov-opt">
+                                        <div style="display:flex; flex-direction:column;">
+                                            <span><i class="fa-solid fa-trowel-bricks"></i>
+                                                <b data-i18n="opt_new_room">بناء
+                                                    غرفة</b></span>
+                                            <small style="font-size:0.7rem; color:#64748b; margin-right:24px;">(يشمل
+                                                الجدران والسقف فقط)</small>
+                                        </div>
+                                    </label>
+                                    <label class="renov-check">
+                                        <input type="checkbox" value="floors" class="renov-opt">
+                                        <span><i class="fa-solid fa-layer-group"></i> <b data-i18n="opt_floors">تغيير
+                                                أرضيات</b></span>
+                                    </label>
+                                    <label class="renov-check">
+                                        <input type="checkbox" value="wall_ceramic" class="renov-opt">
+                                        <span><i class="fa-solid fa-border-all"></i> <b data-i18n="opt_wall_cer">سيراميك
+                                                جدران</b></span>
+                                    </label>
+                                    <label class="renov-check">
+                                        <input type="checkbox" value="plaster" class="renov-opt">
+                                        <span><i class="fa-solid fa-fill-drip"></i> <b
+                                                data-i18n="opt_plaster">لبخ</b></span>
+                                    </label>
+                                    <label class="renov-check">
+                                        <input type="checkbox" value="paint" class="renov-opt">
+                                        <span><i class="fa-solid fa-paint-roller"></i> <b data-i18n="opt_paint">بياض
+                                                وصبغ</b></span>
+                                    </label>
+                                    <label class="renov-check">
+                                        <input type="checkbox" value="electric" class="renov-opt">
+                                        <span><i class="fa-solid fa-bolt"></i> <b
+                                                data-i18n="opt_elec">كهربائيات</b></span>
+                                    </label>
+                                    <label class="renov-check">
+                                        <input type="checkbox" value="sanitary" class="renov-opt"
+                                            onclick="toggleRenovSanitary(this.checked)">
+                                        <span><i class="fa-solid fa-faucet"></i> <b
+                                                data-i18n="opt_sanitary">صحيات</b></span>
+                                    </label>
+                                    <label class="renov-check" id="lblCheckAll">
+                                        <input type="checkbox" value="all" id="checkAllRenov">
+                                        <span data-i18n="opt_all">الكل</span>
+                                    </label>
+                                </div>
+
+                                <!-- Extended Sanitary Settings for Renovation (Hidden by default) -->
+                                <div id="renovSanitaryDetails"
+                                    style="display:none; margin-top:15px; background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                                    <div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 8px;">نظام
+                                        السباكة</div>
+                                    <div class="radio-segment" style="margin-bottom: 12px; background:#fff;">
+                                        <input type="radio" name="renov_plumbing" id="renov_ppr" value="ppr" checked>
+                                        <label for="renov_ppr">تقليدي</label>
+                                        <input type="radio" name="renov_plumbing" id="renov_pex" value="pex">
+                                        <label for="renov_pex">دفن ألماني</label>
+                                    </div>
+                                    <label class="renov-check" style="background:#fff; padding:8px;">
+                                        <input type="checkbox" id="renov_roof_extra">
+                                        <span style="font-size:0.8rem;">تشمل تأسيسات السطح خزان+مضخة</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label data-i18n="lbl_finish">مستوى المواد</label>
+                                <div class="finish-options">
+                                    <label class="finish-card">
+                                        <input type="radio" name="renov_finish" value="commercial">
+                                        <div class="f-content">
+                                            <i class="fa-solid fa-star-half-stroke"></i>
+                                            <span data-i18n="fin_comm">تجاري</span>
+                                        </div>
+                                    </label>
+                                    <label class="finish-card">
+                                        <input type="radio" name="renov_finish" value="average" checked>
+                                        <div class="f-content active">
+                                            <i class="fa-solid fa-star"></i>
+                                            <span data-i18n="fin_avg">جيد</span>
+                                        </div>
+                                    </label>
+                                    <label class="finish-card">
+                                        <input type="radio" name="renov_finish" value="premium">
+                                        <div class="f-content">
+                                            <i class="fa-solid fa-crown"></i>
+                                            <span data-i18n="fin_prem">VIP</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="cta-button" data-i18n="btn_calc_room"
+                                style="margin-top:10px;">حساب
+                                سريع</button>
+                        </form>
+
+                        <!-- Renovation Results (Receipt Style) -->
+                        <div id="renovResult" class="receipt-container hidden" style="display:none;">
+                            <div class="result-header" style="text-align:center; margin-bottom: 15px;">
+                                <div class="market-impact-badge" style="background:#dcfce7; color:#166534;">
+                                    <i class="fa-solid fa-sparkles"></i>
+                                    <span>تقييم تجديد المساحة</span>
+                                </div>
+                                <h4 style="margin:0; font-size: 1.1rem;">فاتورة الترميم التقديرية</h4>
+                            </div>
+
+                            <div class="receipt-body">
+                                <div id="renovationDetailsList"></div>
+                            </div>
+
+                            <div class="total-section">
+                                <span
+                                    style="font-size: 0.85rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px;">التكلفة
+                                    الإجمالية للترميم</span>
+                                <span id="renovTotalDisplay" class="grand-total-amount" style="color:#059669;">0
+                                    د.ع</span>
+                                <div style="font-size: 0.75rem; color: #10b981; font-weight: 600; margin-bottom: 15px;">
+                                    <i class="fa-solid fa-building-circle-check"></i> تشمل المواد المختارة وأجور
+                                    التنفيذ
+                                </div>
+                                <div id="renovPdfBtnContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Shop -->
+                <section id="shop" class="app-view">
+                    <!-- Header with Background Ads -->
+                    <!-- Header with Background Ads (Redesigned) -->
+                    <div class="hero-banner">
+                        <div id="adSlider" class="ad-background-slider">
+                            <div class="ad-slide active"
+                                style="background-image: url('assets/images/tabooga_shop_materials_1766770459515.png'); opacity: 0.8 !important;">
+                            </div>
+                        </div>
+                        <div class="hero-overlay"></div>
+                        <div class="hero-content">
+                            <h2 class="hero-title" data-i18n="nav_shop">سوق المواد</h2>
+                            <p class="hero-subtitle">أفضل الأسعار من الموردين مباشرة</p>
+                            <button onclick="switchView('business-login')" style="margin-top:15px; pointer-events:auto; background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer; font-size:0.9rem; box-shadow:0 4px 10px rgba(16, 185, 129, 0.3);">
+                                <i class="fa-solid fa-store" style="margin-left:5px;"></i> تاجر؟ انشر منتجاتك هنا
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Market Filter -->
+                    <div style="padding: 10px 0; margin-bottom: 15px;">
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-map-location-dot"></i> تصفية حسب المحافظة</label>
+                            <select id="marketGovFilter" class="modern-select" onchange="renderMarket(this.value)">
+                                <option value="all">جميع المحافظات</option>
+                                <option value="baghdad">بغداد</option>
+                                <option value="basra">البصرة</option>
+                                <option value="erbil">أربيل</option>
+                                <option value="nineveh">نينوى (الموصل)</option>
+                                <option value="babylon">بابل</option>
+                                <option value="najaf">النجف</option>
+                                <option value="karbala">كربلاء</option>
+                                <option value="wasit">واسط</option>
+                                <option value="thiqar">ذي قار</option>
+                                <option value="missan">ميسان</option>
+                                <option value="muthanna">المثنى</option>
+                                <option value="qadisiya">القادسية</option>
+                                <option value="diyala">ديالى</option>
+                                <option value="anbar">الأنبار</option>
+                                <option value="kirkuk">كركوك</option>
+                                <option value="salahaddin">صلاح الدين</option>
+                                <option value="dohuk">دهوك</option>
+                                <option value="sulaymaniyah">السليمانية</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="shop-grid" id="shopGrid"></div>
+
+                    <!-- FAB: Register as Shop -->
+                    <button class="fab-btn" onclick="openRegistration('shop')">
+                        <i class="fa-solid fa-store"></i>
+                        <span data-i18n="nav_shop">السوق</span>
+                    </button>
+                </section>
+
+                <!-- View: Merchant Profile -->
+                <section id="merchant-profile" class="app-view hidden">
+                    <div style="position: sticky; top: var(--header-height); z-index: 40; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div id="mpCover" style="height: 150px; background: #e2e8f0 url('assets/images/tabooga_shop_materials_1766770459515.png') center/cover no-repeat; position: relative;">
+                            <button onclick="switchView('shop')" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <button onclick="merchantAction('cover')" style="position: absolute; bottom: 15px; left: 15px; background: rgba(0,0,0,0.6); border: none; color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-camera"></i> تغيير الغلاف
+                            </button>
+                        </div>
+                        <div style="padding: 0 15px 15px; position: relative;">
+                            <div id="mpLogo" style="width: 80px; height: 80px; background: #ffffff; border: 4px solid white; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--primary); font-size: 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: -40px; position: relative; z-index: 2;"></div>
+                            <div style="margin-top: 10px;">
+                                <h3 style="margin: 0 0 3px; font-size: 1.4rem; color: var(--text-main); font-weight: 900; display:flex; align-items:center;"><span id="mpName"></span> <i class="fa-solid fa-circle-check" style="color:#3b82f6; font-size:1.1rem; margin-right:6px;" title="موثق"></i></h3>
+                                <p id="mpGov" style="margin: 0; font-size: 0.9rem; color: var(--text-light);"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 15px; background: #f8fafc; min-height: 100vh;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;">
+                            <button onclick="merchantAction('product')" style="background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-plus"></i> إضافة منتج</button>
+                            <button onclick="merchantAction('renew')" style="background: #10B981; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-rotate"></i> تجديد الاشتراك</button>
+                            <button onclick="merchantAction('stats')" style="background: #3b82f6; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-chart-line"></i> الإحصائيات</button>
+                        </div>
+                        
+                        <p id="mpDesc" style="margin: 0 0 20px; font-size: 0.95rem; color: var(--text-main); line-height: 1.5; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;"></p>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="margin: 0; color: var(--primary); font-size: 1.1rem;"><i class="fa-solid fa-box-open"></i> المنتجات المتوفرة</h4>
+                        </div>
+                        <div class="shop-grid" id="mpProductsGrid"></div>
+                    </div>
+                </section>
+
+                <!-- View: Pros -->
+                <section id="pros" class="app-view">
+                    <!-- Pros Ad Slider -->
+                    <!-- Pros Ad Slider (Redesigned) -->
+                    <div class="hero-banner">
+                        <div id="prosHero" class="ad-background-slider">
+                            <div class="ad-slide active"
+                                style="background-image: url('assets/images/tabooga_pros_engineer_1766770490376.png'); opacity: 0.8 !important;">
+                            </div>
+                        </div>
+                        <div class="hero-overlay"></div>
+                        <div class="hero-content">
+                            <h2 class="hero-title" data-i18n="nav_pros">الخبراء</h2>
+                            <p class="hero-subtitle">نخبة المهندسين والفنيين</p>
+                        </div>
+                    </div>
+
+                    <div class="shop-grid" id="prosList">
+                        <!-- Injected by renderPros() -->
+                    </div>
+
+                    <!-- FAB: Register As Pro -->
+                    <button class="fab-btn" onclick="openRegistration('con')">
+                        <i class="fa-solid fa-person-digging"></i>
+                        <span data-i18n="nav_pros">الخبراء</span>
+                    </button>
+                </section>
+
+                <!-- View: Pro Profile -->
+                <section id="market" class="app-view hidden">
+                    <div style="position: sticky; top: var(--header-height); z-index: 40; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div id="ppCover" style="height: 150px; background: #e2e8f0 center/cover no-repeat; position: relative;">
+                            <button onclick="switchView('pros')" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <button onclick="merchantAction('cover')" style="position: absolute; bottom: 15px; left: 15px; background: rgba(0,0,0,0.6); border: none; color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-camera"></i> تغيير الغلاف
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Market Filter -->
+                    <div style="padding: 10px 0; margin-bottom: 15px;">
+                        <div class="input-group">
+                            <label><i class="fa-solid fa-map-location-dot"></i> تصفية حسب المحافظة</label>
+                            <select id="marketGovFilter" class="modern-select" onchange="renderMarket(this.value)">
+                                <option value="all">جميع المحافظات</option>
+                                <option value="baghdad">بغداد</option>
+                                <option value="basra">البصرة</option>
+                                <option value="erbil">أربيل</option>
+                                <option value="nineveh">نينوى (الموصل)</option>
+                                <option value="babylon">بابل</option>
+                                <option value="najaf">النجف</option>
+                                <option value="karbala">كربلاء</option>
+                                <option value="wasit">واسط</option>
+                                <option value="thiqar">ذي قار</option>
+                                <option value="missan">ميسان</option>
+                                <option value="muthanna">المثنى</option>
+                                <option value="qadisiya">القادسية</option>
+                                <option value="diyala">ديالى</option>
+                                <option value="anbar">الأنبار</option>
+                                <option value="kirkuk">كركوك</option>
+                                <option value="salahaddin">صلاح الدين</option>
+                                <option value="dohuk">دهوك</option>
+                                <option value="sulaymaniyah">السليمانية</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="shop-grid" id="shopGrid"></div>
+
+                    <!-- FAB: Register as Shop -->
+                    <button class="fab-btn" onclick="openRegistration('shop')">
+                        <i class="fa-solid fa-store"></i>
+                        <span data-i18n="nav_shop">السوق</span>
+                    </button>
+                </section>
+
+                <!-- View: Merchant Profile -->
+                
+
+                <!-- View: Pros -->
+                
+
+                <!-- View: Pro Profile -->
+                <section id="pro-profile" class="app-view hidden">
+                    <div style="position: sticky; top: var(--header-height); z-index: 40; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div id="ppCover" style="height: 150px; background: #e2e8f0 center/cover no-repeat; position: relative;">
+                            <button onclick="switchView('pros')" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <button onclick="merchantAction('cover')" style="position: absolute; bottom: 15px; left: 15px; background: rgba(0,0,0,0.6); border: none; color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-camera"></i> تغيير الغلاف
+                            </button>
+                        </div>
+                        <div style="padding: 0 15px 15px; position: relative;">
+                            <div id="ppLogo" style="width: 80px; height: 80px; background: #ffffff; border: 4px solid white; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--primary); font-size: 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: -40px; position: relative; z-index: 2;"></div>
+                            <div style="margin-top: 10px;">
+                                <h3 style="margin: 0 0 3px; font-size: 1.4rem; color: var(--text-main); font-weight: 900; display:flex; align-items:center;"><span id="ppName"></span> <i class="fa-solid fa-circle-check" style="color:#3b82f6; font-size:1.1rem; margin-right:6px;" title="خبير معتمد"></i></h3>
+                                <p id="ppCategory" style="margin: 0; font-size: 0.9rem; color: var(--text-light);"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 15px; background: #f8fafc; min-height: 100vh;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;">
+                            <button onclick="merchantAction('portfolio')" style="background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-plus"></i> إضافة عمل/صورة</button>
+                            <button onclick="merchantAction('service')" style="background: #f59e0b; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-tags"></i> إضافة خدمة/سعر</button>
+                            <button onclick="merchantAction('desc')" style="background: #3b82f6; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-pen"></i> تعديل النبذة</button>
+                            <button onclick="merchantAction('cv')" style="background: #8b5cf6; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-file-lines"></i> تحديث الـ CV</button>
+                            <button onclick="merchantAction('renew')" style="background: #10B981; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-rotate"></i> تجديد الاشتراك</button>
+
+                        </div>
+                        
+                        <p id="ppDesc" style="margin: 0 0 20px; font-size: 0.95rem; color: var(--text-main); line-height: 1.5; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;"></p>
+                        
+                        <div id="ppCvContainer" style="display: none; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+                            <h4 style="margin: 0 0 10px; color: var(--primary); font-size: 1.1rem;"><i class="fa-solid fa-address-card"></i> السيرة الذاتية (CV)</h4>
+                            <p id="ppCvText" style="margin: 0; font-size: 0.95rem; color: var(--text-main); line-height: 1.6;"></p>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="margin: 0; color: var(--primary); font-size: 1.1rem;"><i class="fa-solid fa-tags"></i> الخدمات والأسعار</h4>
+                        </div>
+                        <div class="shop-grid" id="ppServicesGrid" style="margin-bottom: 20px;"></div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="margin: 0; color: var(--primary); font-size: 1.1rem;"><i class="fa-solid fa-images"></i> معرض الأعمال</h4>
+                        </div>
+                        <div class="shop-grid" id="ppPortfoliosGrid"></div>
+                    </div>
+                </section>
+
+                <!-- View: Plans (Engineering Center) -->
+                <section id="plans" class="app-view">
+                    <!-- Engineering Header Banner -->
+                    <div class="hero-banner" style="margin-bottom: 12px;">
+                        <div id="plansHero" class="ad-background-slider">
+                            <div class="ad-slide active" style="background-image: url('assets/images/tabooga_plans_blueprints_1766770505402.png'); opacity: 0.8 !important;"></div>
+                        </div>
+                        <div class="hero-overlay"></div>
+                        <div class="hero-content">
+                            <h2 class="hero-title" data-i18n="nav_plans">الخرائط والتصاميم الهندسية</h2>
+                            <p class="hero-subtitle">تصفح أحدث الواجهات والخرائط المخصصة حسب المساحة</p>
+                        </div>
+                    </div>
+
+                    <!-- 1. TOP: Request Board Button & Actions -->
+                    <div style="padding: 0 15px 10px;">
+                        <button onclick="openSubmitRequest('engineering')" style="width:100%; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color:white; border:none; border-radius:16px; height:58px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:12px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3); font-size:1.05rem; cursor:pointer;">
+                            <i class="fa-solid fa-bullhorn" style="font-size:1.3rem;"></i>
+                            <span>لوحة الطلبات العامة والاستشارات (أضف طلبك)</span>
+                        </button>
+                    </div>
+
+                    <!-- 2. TOP: Blueprint Area Measurement Filters -->
+                    <div style="padding: 0 15px 12px; position: sticky; top: var(--header-height); z-index: 30; background: #f8fafc; padding-top: 5px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-size:0.85rem; font-weight:bold; color:#1e293b;"><i class="fa-solid fa-ruler-combined" style="color:#2563eb; margin-left:4px;"></i> قياسات الخرائط:</span>
+                            <span style="font-size:0.75rem; color:#64748b;">اختر المساحة لعرض الخرائط</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px;" id="blueprintFilters" class="hide-scrollbar">
+                            <button onclick="renderBlueprints('all')" class="filter-btn active" style="background:var(--primary); color:white; border:none; padding:8px 16px; border-radius:20px; font-weight:bold; white-space:nowrap; cursor:pointer;">الكل</button>
+                            <button onclick="renderBlueprints(50)" class="filter-btn" style="background:white; color:var(--text-main); border:1px solid #cbd5e1; padding:8px 16px; border-radius:20px; font-weight:bold; white-space:nowrap; cursor:pointer;">50م²</button>
+                            <button onclick="renderBlueprints(100)" class="filter-btn" style="background:white; color:var(--text-main); border:1px solid #cbd5e1; padding:8px 16px; border-radius:20px; font-weight:bold; white-space:nowrap; cursor:pointer;">100م²</button>
+                            <button onclick="renderBlueprints(150)" class="filter-btn" style="background:white; color:var(--text-main); border:1px solid #cbd5e1; padding:8px 16px; border-radius:20px; font-weight:bold; white-space:nowrap; cursor:pointer;">150م²</button>
+                            <button onclick="renderBlueprints(200)" class="filter-btn" style="background:white; color:var(--text-main); border:1px solid #cbd5e1; padding:8px 16px; border-radius:20px; font-weight:bold; white-space:nowrap; cursor:pointer;">200م²+</button>
+                        </div>
+                    </div>
+
+                    <!-- AI Scanner Action Button -->
+                    <div style="padding: 0 15px 10px;">
+                        <button class="cta-button" onclick="openAIScanner()"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); width:100%; border-radius:14px; height:50px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25); font-size:0.95rem;">
+                            <i class="fa-solid fa-camera-retro" style="font-size:1.2rem;"></i>
+                            <span>ماسح المخططات الذكي (AI)</span>
+                        </button>
+                    </div>
+
+                    <!-- Upload Public Blueprint -->
+                    <div style="padding: 0 15px 12px;">
+                        <button onclick="merchantAction('publicBlueprint')" style="width:100%; background: #f8fafc; color: var(--primary); border: 2px dashed var(--primary); border-radius:12px; padding:10px; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:8px; font-size:0.9rem;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> رفع خريطة من جهازك
+                        </button>
+                    </div>
+
+                    <!-- Free Blueprints Gallery Grid -->
+                    <div style="padding: 5px 15px 15px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h3 style="margin:0; font-size:1.1rem; color:var(--text-main);">
+                                <i class="fa-solid fa-gift" style="color:#f59e0b; margin-left:5px;"></i> المعرض المعماري والخرائط المجانية 
+                            </h3>
+                            <span style="font-size:0.75rem; background:#fee2e2; color:#ef4444; padding:2px 8px; border-radius:10px; font-weight:bold;">خدمة عامة</span>
+                        </div>
+                        <div id="freeBlueprintsGallery">
+                            <!-- Dynamic Vertical Grid -->
+                        </div>
+                    </div>
+                    
+                    <!-- Blueprints Vertical Grid -->
+                    <div class="shop-grid" id="blueprintsGrid" style="padding-top: 0;">
+                        <!-- Injected by renderBlueprints() -->
+                    </div>
+
+                    <!-- FAB: Register Office -->
+                    <button class="fab-btn" onclick="openRegistration('eng')">
+                        <i class="fa-solid fa-compass-drafting"></i>
+                    </button>
+                </section>
+
+                <!-- View: Requests Board -->
+                <section id="requests-board" class="app-view hidden">
+                    <div style="padding: 20px 15px; position: sticky; top: var(--header-height); background: white; z-index: 30; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.5rem; color: var(--text-main); font-weight: 900;"><i class="fa-solid fa-clipboard-list" style="color: var(--primary);"></i> لوحة الطلبات العامة</h2>
+                            <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-light);">فرص حقيقية للمكاتب والمحترفين</p>
+                        </div>
+                        <button onclick="switchView('plans')" style="background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; color: var(--text-main);">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div style="padding: 15px;">
+                        <div class="shop-grid" id="requestsGrid" style="display: flex; flex-direction: column; gap: 15px;">
+                            <!-- Injected by renderRequestsBoard() -->
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- View: Office Profile -->
+                <section id="office-profile" class="app-view hidden">
+                    <div style="position: sticky; top: var(--header-height); z-index: 40; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div id="opCover" style="height: 150px; background: #e2e8f0 center/cover no-repeat; position: relative;">
+                            <button onclick="switchView('plans')" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <button onclick="merchantAction('cover', 'office')" style="position: absolute; bottom: 15px; left: 15px; background: rgba(0,0,0,0.6); border: none; color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-camera"></i> تغيير الغلاف
+                            </button>
+                        </div>
+                        <div style="padding: 0 15px 15px; position: relative;">
+                            <div id="opLogo" style="width: 80px; height: 80px; background: #ffffff; border: 4px solid white; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--primary); font-size: 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: -40px; position: relative; z-index: 2;"></div>
+                            <div style="margin-top: 10px;">
+                                <h3 style="margin: 0 0 3px; font-size: 1.4rem; color: var(--text-main); font-weight: 900; display:flex; align-items:center;"><span id="opName"></span> <i class="fa-solid fa-circle-check" style="color:#3b82f6; font-size:1.1rem; margin-right:6px;" title="مكتب معتمد"></i></h3>
+                                <p id="opGov" style="margin: 0; font-size: 0.9rem; color: var(--text-light);"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 15px; background: #f8fafc; min-height: 100vh;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;">
+                            <button onclick="merchantAction('blueprint', 'office')" style="background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-plus"></i> إضافة خارطة</button>
+                            <button onclick="merchantAction('stats', 'office')" style="background: #3b82f6; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;"><i class="fa-solid fa-chart-line"></i> الإحصائيات</button>
+                        </div>
+                        
+                        <p id="opDesc" style="margin: 0 0 20px; font-size: 0.95rem; color: var(--text-main); line-height: 1.5; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;"></p>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="margin: 0; color: var(--primary); font-size: 1.1rem;"><i class="fa-solid fa-layer-group"></i> خرائط وتصاميم المكتب</h4>
+                        </div>
+                        <div class="shop-grid" id="opBlueprintsGrid"></div>
+                    </div>
+                </section>
+<!-- View: Business Center (New) -->
+                <section id="business" class="app-view">
+                    <!-- VIP Investor Hero Banner -->
+                    <div class="hero-banner" style="height: 220px; border-radius: 0 0 30px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                        <div id="bizHero" class="ad-background-slider">
+                            <div class="ad-slide active"
+                                style="background-image: url('assets/images/tabooga_business_office_1766770523672.png'); filter: brightness(0.4);">
+                            </div>
+                        </div>
+                        <div class="hero-overlay" style="background: linear-gradient(0deg, #1e1b4b 0%, transparent 100%);"></div>
+                        <div class="hero-content" style="bottom: 20px;">
+                            <div style="background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.5); color: #FFD700; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; margin-bottom: 8px;">
+                                <i class="fa-solid fa-crown"></i> B2B & Investors Hub
+                            </div>
+                            <h2 class="hero-title" style="font-size: 1.6rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">منصة الشركاء الاستراتيجيين</h2>
+                            <p class="hero-subtitle" style="font-size: 0.9rem; color: #e2e8f0;">استثمر، ضاعف مبيعاتك، وسيطر على سوق البناء العراقي</p>
+                        </div>
+                    </div>
+
+                    <!-- Market KPIs (Why Invest) -->
+                    <div style="margin: -20px 15px 20px; background: white; border-radius: 16px; padding: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.06); position: relative; z-index: 10; display: flex; justify-content: space-around; text-align: center;">
+                        <div>
+                            <div style="font-size: 1.2rem; font-weight: 900; color: #4F46E5;">+50K</div>
+                            <div style="font-size: 0.7rem; color: #64748b; font-weight: 700;">طلب شهرياً</div>
+                        </div>
+                        <div style="border-right: 1px solid #e2e8f0; border-left: 1px solid #e2e8f0; padding: 0 15px;">
+                            <div style="font-size: 1.2rem; font-weight: 900; color: #10B981;">100%</div>
+                            <div style="font-size: 0.7rem; color: #64748b; font-weight: 700;">تغطية للسوق</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.2rem; font-weight: 900; color: #F59E0B;">VIP</div>
+                            <div style="font-size: 0.7rem; color: #64748b; font-weight: 700;">بيانات ضخمة</div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 0 15px;">
+                        <!-- VIP Partnership CTA -->
+                        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; padding: 20px; color: white; margin-bottom: 25px; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2); position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -20px; right: -20px; font-size: 6rem; color: rgba(255,255,255,0.03); transform: rotate(15deg);">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <h3 style="margin: 0 0 8px; font-size: 1.1rem; position: relative; z-index: 2;">للمستثمرين والشركات الكبرى</h3>
+                            <p style="margin: 0 0 15px; font-size: 0.8rem; color: #94a3b8; position: relative; z-index: 2;">احصل على صلاحيات حصرية، بيانات تحليلية، وإدارة كاملة لطلبات المحافظات.</p>
+                            <button onclick="vipContact()" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; font-size: 0.9rem; width: 100%; cursor: pointer; position: relative; z-index: 2; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);">
+                                <i class="fa-solid fa-handshake"></i> تواصل مع الإدارة للشراكة
+                            </button>
+                        </div>
+
+                        <div class="section-title" style="margin-bottom: 15px;">
+                            <h3 style="font-size: 1.1rem; color: #1e293b;"><i class="fa-solid fa-layer-group" style="color:#4F46E5; margin-left:8px;"></i> باقات الاشتراك التجارية</h3>
+                            <p style="font-size:0.8rem; color:#64748b; margin-top:2px;">اختر الباقة المناسبة لتوسيع نشاطك التجاري</p>
+                        </div>
+
+                        <!-- Compact Grid Plans List -->
+                        <div id="businessPlansContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 25px;">
+                            <!-- Hardcoded for 100% reliability -->
+                            <div style="background: white; border: 1px solid #6366f130; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #6366f115; color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 8px;">
+                                        <i class="fa-solid fa-compass-drafting"></i>
+                                    </div>
+                                    <h4 style="margin: 0 0 5px; font-size: 0.85rem; color: #1e293b; font-weight: 800;">شراكة هندسية</h4>
+                                    <div style="font-size:0.7rem; color:#64748b; margin-top:4px;"><i class="fa-solid fa-check" style="color:#6366f1; font-size:0.6rem;"></i> ظهور للمقاولين</div>
+                                    <div style="font-size:0.7rem; color:#64748b; margin-top:4px;"><i class="fa-solid fa-check" style="color:#6366f1; font-size:0.6rem;"></i> طلبات مباشرة</div>
+                                </div>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 0.9rem; font-weight: 900; color: #6366f1;">50,000 <span style="font-size:0.6rem;">د.ع/سنة</span></div>
+                                </div>
+                            </div>
+
+                            <div style="background: white; border: 1px solid #f59e0b30; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #f59e0b15; color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 8px;">
+                                        <i class="fa-solid fa-hard-hat"></i>
+                                    </div>
+                                    <h4 style="margin: 0 0 5px; font-size: 0.85rem; color: #1e293b; font-weight: 800;">المقاول المعتمد</h4>
+                                    <div style="font-size:0.7rem; color:#64748b; margin-top:4px;"><i class="fa-solid fa-check" style="color:#f59e0b; font-size:0.6rem;"></i> إدارة مناقصات</div>
+                                    <div style="font-size:0.7rem; color:#64748b; margin-top:4px;"><i class="fa-solid fa-check" style="color:#f59e0b; font-size:0.6rem;"></i> بيانات الزبائن</div>
+                                </div>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 0.9rem; font-weight: 900; color: #f59e0b;">35,000 <span style="font-size:0.6rem;">د.ع/سنة</span></div>
+                                </div>
+                            </div>
+
+                            <div style="background: white; border: 1px solid #10b98130; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #10b98115; color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 8px;">
+                                        <i class="fa-solid fa-cubes"></i>
+                                    </div>
+                                    <h4 style="margin: 0 0 5px; font-size: 0.85rem; color: #1e293b; font-weight: 800;">وكيل / تاجر</h4>
+                                    <div style="font-size:0.7rem; color:#64748b; margin-top:4px;"><i class="fa-solid fa-check" style="color:#10b981; font-size:0.6rem;"></i> متجر متكامل</div>
+                                    <div style="font-size:0.7rem; color:#64748b; margin-top:4px;"><i class="fa-solid fa-check" style="color:#10b981; font-size:0.6rem;"></i> طلبات جملة</div>
+                                </div>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 0.9rem; font-weight: 900; color: #10b981;">35,000 <span style="font-size:0.6rem;">د.ع/سنة</span></div>
+                                </div>
+                            </div>
+
+                            <div style="background: white; border: 1px solid #3b82f630; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #3b82f615; color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 8px;">
+                                        <i class="fa-solid fa-tools"></i>
+                                    </div>
+                                    <h4 style="margin: 0 0 5px; font-size: 0.85rem; color: #1e293b; font-weight: 800;">فني محترف</h4>
+                                    <div style="font-size:0.7rem; color:#64748b; margin-top:4px;"><i class="fa-solid fa-check" style="color:#3b82f6; font-size:0.6rem;"></i> معرض أعمال</div>
+                                    <div style="font-size:0.7rem; color:#64748b; margin-top:4px;"><i class="fa-solid fa-check" style="color:#3b82f6; font-size:0.6rem;"></i> تقييم الزبائن</div>
+                                </div>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0;">
+                                    <div style="font-size: 0.9rem; font-weight: 900; color: #3b82f6;">15,000 <span style="font-size:0.6rem;">د.ع/سنة</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unified Registration Button -->
+                        <button class="cta-button" onclick="openRegistration()"
+                            style="width:100%; border-radius:14px; padding:12px; font-size:1rem; justify-content:center; box-shadow:0 4px 15px rgba(37, 99, 235, 0.2); background: white; color: var(--primary); border: 2px solid var(--primary); margin-bottom: 20px;">
+                            <i class="fa-solid fa-user-plus"></i> <span data-i18n="reg_title">تسجيل حساب قياسي</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- View: Settings (New) -->
+                <section id="settings" class="app-view">
+                    <div class="section-title">
+                        <h3><i class="fa-solid fa-gear" style="color:var(--primary); margin-left:10px;"></i>
+                            الإعدادات
+                        </h3>
+                    </div>
+
+                    <div class="settings-list">
+                        <!-- Dark Mode -->
+                        <div class="settings-item">
+                            <div class="settings-info">
+                                <div class="settings-icon"><i class="fa-solid fa-moon"></i></div>
+                                <div class="settings-text">
+                                    <h4>الوضع الليلي</h4>
+                                    <p>تحويل المظهر للداكن</p>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Default Location -->
+                        <div class="settings-item">
+                            <div class="settings-info">
+                                <div class="settings-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                                <div class="settings-text" style="flex:1;">
+                                    <h4>المحافظة الافتراضية</h4>
+                                    <p>تحديد موقع الحساب التلقائي</p>
+                                </div>
+                            </div>
+                            <select id="defaultGovSelect" class="modern-select" style="width: 120px; padding: 8px;"
+                                onchange="setDefaultLocation(this.value)">
+                                <option value="">اختر...</option>
+                                <option value="baghdad">بغداد</option>
+                                <option value="basra">البصرة</option>
+                                <option value="erbil">أربيل</option>
+                                <option value="nineveh">نينوى</option>
+                                <option value="babylon">بابل</option>
+                                <option value="najaf">النجف</option>
+                                <option value="karbala">كربلاء</option>
+                                <option value="anbar">الأنبار</option>
+                                <option value="sulaymaniyah">السليمانية</option>
+                            </select>
+                        </div>
+
+                        <!-- Clear Data -->
+                        <div class="settings-item" onclick="clearAppData()" style="cursor:pointer;">
+                            <div class="settings-info">
+                                <div class="settings-icon" style="color:#ef4444; background:#fee2e2;"><i
+                                        class="fa-solid fa-trash-can"></i></div>
+                                <div class="settings-text">
+                                    <h4 style="color:#ef4444;">مسح البيانات</h4>
+                                    <p>إعادة ضبط التطبيق</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-left" style="color:var(--text-light);"></i>
+                        </div>
+
+                        <!-- Admin Panel (Protected) -->
+                        <div class="settings-item" onclick="openAdminPanel()"
+                            style="cursor:pointer; border-color:#eab308; background:#fffbeb; position:relative;">
+                            <div class="settings-info">
+                                <div class="settings-icon" style="color:#eab308; background:#fef9c3;"><i
+                                        class="fa-solid fa-user-shield"></i></div>
+                                <div class="settings-text">
+                                    <h4>إدارة المنصة</h4>
+                                    <p>المشتركين والطلبات</p>
+                                </div>
+                            </div>
+                            <!-- External Badge -->
+                            <span id="settingsAdminBadge"
+                                style="position:absolute; top:15px; left:40px; background:#ef4444; color:white; font-size:0.7rem; padding:2px 8px; border-radius:12px; display:none;">0</span>
+                            <i class="fa-solid fa-chevron-left" style="color:#eab308;"></i>
+                        </div>
+
+<!-- Business Login (New) -->
+                        <div class="settings-item" onclick="loginAsBusiness()"
+                            style="cursor:pointer; border-color:#3b82f6; background:#eff6ff;">
+                            <div class="settings-info">
+                                <div class="settings-icon" style="color:#3b82f6; background:#dbeafe;"><i
+                                        class="fa-solid fa-briefcase"></i></div>
+                                <div class="settings-text">
+                                    <h4>دخول أصحاب العمل</h4>
+                                    <p>إدارة مشاريعك ومنتجاتك</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-left" style="color:#3b82f6;"></i>
+                        </div>
+
+                        <!-- Info & Copyright -->
+                        <div class="settings-item"
+                            style="justify-content: center; background: transparent; border: none; box-shadow: none; flex-direction:column; gap:5px;">
+                            <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 5px;">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <p style="color:var(--text-light); text-align: center; font-weight:bold;">Tabooga App
+                            </p>
+                            <p style="color:var(--text-light); text-align: center; font-size: 0.8rem; opacity: 0.8;">
+                                جميع الحقوق محفوظة للمالك © 2026<br>
+                                All Rights Reserved
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="business-login" class="app-view">
+                    <div style="padding: 20px;">
+                        <div style="background:white; border-radius:20px; padding:30px 20px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.05); border:1px solid #e2e8f0; margin-top:20px;">
+                            <div style="width:70px; height:70px; background:linear-gradient(135deg, #e0e7ff, #c7d2fe); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; color:#4f46e5; font-size:2rem; transform:rotate(-10deg);">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </div>
+                            <h2 style="margin:0 0 10px; color:#1e293b; font-size:1.4rem;">دخول أصحاب العمل</h2>
+                            <p style="color:#64748b; font-size:0.9rem; margin-bottom:25px;">قم بتسجيل الدخول لإدارة محلك أو خدماتك الهندسية</p>
+                            
+                            <div style="text-align:right;">
+                                <label style="display:block; margin-bottom:8px; font-weight:bold; color:#334155; font-size:0.9rem;">رقم الهاتف</label>
+                                <div style="position:relative; margin-bottom:15px;">
+                                    <i class="fa-solid fa-phone" style="position:absolute; right:15px; top:15px; color:#94a3b8;"></i>
+                                    <input type="tel" id="bizLoginPhone" placeholder="07XXXXXXXXX" style="width:100%; padding:12px 40px 12px 15px; border-radius:12px; border:2px solid #e2e8f0; font-size:1rem; outline:none; transition:border 0.3s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#e2e8f0'">
+                                </div>
+                                
+                                <label style="display:block; margin-bottom:8px; font-weight:bold; color:#334155; font-size:0.9rem;">كلمة المرور</label>
+                                <div style="position:relative; margin-bottom:25px;">
+                                    <i class="fa-solid fa-lock" style="position:absolute; right:15px; top:15px; color:#94a3b8;"></i>
+                                    <input type="password" id="bizLoginPass" placeholder="****" style="width:100%; padding:12px 40px 12px 15px; border-radius:12px; border:2px solid #e2e8f0; font-size:1rem; outline:none; transition:border 0.3s;" onfocus="this.style.borderColor='#4f46e5'" onblur="this.style.borderColor='#e2e8f0'">
+                                </div>
+                            </div>
+                            
+                            <button onclick="executeBusinessLogin()" style="width:100%; background:linear-gradient(135deg, #4f46e5, #3b82f6); color:white; border:none; padding:15px; border-radius:12px; font-size:1.1rem; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(79, 70, 229, 0.3); transition:transform 0.2s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                                تسجيل الدخول <i class="fa-solid fa-arrow-left" style="margin-right:8px;"></i>
+                            </button>
+                            <button onclick="switchView('settings')" style="width:100%; background:transparent; color:#64748b; border:1px solid #e2e8f0; padding:12px; border-radius:12px; font-size:0.95rem; font-weight:bold; cursor:pointer; margin-top:15px;">
+                                رجوع
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="business-dashboard" class="app-view">
+                    <div id="businessDashboardContent">
+                        <!-- Content will be rendered dynamically by JS -->
+                    </div>
+                </section>
+
+                <div style="height: 100px;"></div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <nav class="bottom-nav">
+                <a href="#home" class="nav-item active" onclick="switchView('home'); return false;">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span data-i18n="nav_calc">بناء</span>
+                </a>
+                <a href="#renovation" class="nav-item" onclick="switchView('renovation'); return false;">
+                    <i class="fa-solid fa-hammer"></i>
+                    <span data-i18n="nav_renovation">ترميم</span>
+                </a>
+                <a href="#shop" class="nav-item" onclick="switchView('shop'); return false;">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span data-i18n="nav_shop">السوق</span>
+                </a>
+                <a href="#pros" class="nav-item" onclick="switchView('pros'); return false;">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span data-i18n="nav_pros">خبراء</span>
+                </a>
+                <a href="#plans" class="nav-item" onclick="switchView('plans'); return false;">
+                    <i class="fa-solid fa-map"></i>
+                    <span data-i18n="nav_plans">خرائط</span>
+                </a>
+                <a href="#business" class="nav-item" onclick="switchView('business'); return false;">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span data-i18n="nav_business">أعمال</span>
+                </a>
+            </nav>
+        </div>
+
+
+        <!-- Business Dashboard Modal -->
+        <div id="businessDashboardModal" class="hidden"
+            style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f8fafc; z-index:99990; overflow-y:auto;">
+            <div
+                style="background:white; padding:15px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 10px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100;">
+                <h3 style="margin:0; font-size:1.1rem;"><i class="fa-solid fa-briefcase" style="color:#3b82f6;"></i>
+                    لوحة الأعمال</h3>
+                <button onclick="document.getElementById('businessDashboardModal').classList.add('hidden')"
+                    style="background:none; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="bizDashContent" style="padding:20px;">
+                <!-- Dynamic Content Injected Here -->
+            </div>
+        </div>
+
+
+
+
+
+    </div>
+
+    <!-- Service Request Modal -->
+    <div id="serviceModal" class="results-sheet hidden" style="z-index: 500; height: auto; min-height: 300px;">
+        <div class="sheet-handle"></div>
+        <button class="close-sheet-abs" onclick="closeServiceModal()"><i class="fa-solid fa-times"></i></button>
+
+        <h3 id="reqTitle" style="margin-bottom: 20px;" data-i18n="req_title">طلب خدمة</h3>
+
+        <div class="input-group" style="width:100%">
+            <label data-i18n="req_name">الاسم</label>
+            <input type="text" id="reqName" placeholder="...">
+        </div>
+
+        <div class="input-group" style="width:100%">
+            <label data-i18n="req_phone">رقم الهاتف</label>
+            <input type="number" id="reqPhone" placeholder="07...">
+        </div>
+
+        <div class="input-group" style="width:100%">
+            <label data-i18n="req_notes">ملاحظات</label>
+            <input type="text" id="reqNotes" placeholder="...">
+        </div>
+
+        <button class="cta-button" onclick="submitServiceRequest()">
+            <span data-i18n="btn_send_req">إرسال الطلب</span>
+        </button>
+    </div>
+
+    
+    <!-- Payment Modal - ZainCash / SuperCash System v2 -->
+    <style>
+        #paymentModal.hidden { display: none !important; }
+        #priceSettingsModal.hidden { display: none !important; }
+        .pm-method-btn {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px; border: 2px solid #e2e8f0; border-radius: 14px;
+            background: white; cursor: pointer; width: 100%; margin-bottom: 12px;
+            font-size: 1rem; font-weight: bold; text-align: right;
+        }
+        .pm-copy-box {
+            background: #f8fafc; border: 1px dashed #3b82f6; border-radius: 10px;
+            padding: 12px 16px; font-size: 1.1rem; font-weight: bold;
+            color: #1e293b; text-align: center; margin: 8px 0; cursor: pointer;
+        }
+    </style>
+
+    <div id="paymentModal" class="hidden"
+        style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;display:flex;align-items:flex-end;justify-content:center;">
+        <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);" onclick="closePaymentModal()"></div>
+        <div style="position:relative;width:100%;max-width:500px;background:white;border-radius:24px 24px 0 0;padding:24px;max-height:90vh;overflow-y:auto;">
+
+            <!-- Step 1: Method -->
+            <div id="pm_step_method">
+                <div style="text-align:center;margin-bottom:20px;">
+                    <i class="fa-solid fa-wallet" style="font-size:2.2rem;color:#3b82f6;margin-bottom:8px;display:block;"></i>
+                    <h3 style="margin:0 0 10px;color:#1e1b4b;">&#1575;&#1582;&#1578;&#1585; &#1591;&#1585;&#1610;&#1602;&#1577; &#1575;&#1604;&#1583;&#1601;&#1593;</h3>
+                    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px;">
+                        <p style="margin:0;font-size:0.85rem;color:#64748b;">&#1575;&#1604;&#1594;&#1585;&#1590;:</p>
+                        <p id="pm_purpose_display" style="margin:4px 0 0;font-weight:bold;color:#1e293b;"></p>
+                        <p id="pm_amount_display" style="margin:4px 0 0;font-size:1.5rem;font-weight:bold;color:#10b981;"></p>
+                    </div>
+                </div>
+                <button class="pm-method-btn" onclick="selectPaymentMethod('zaincash')" style="border-color:#22c55e;">
+                    <div style="width:46px;height:46px;background:#22c55e;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fa-solid fa-mobile-screen" style="color:white;font-size:1.3rem;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="color:#15803d;">ZainCash</div>
+                        <div id="pm_zain_number" style="font-size:0.82rem;color:#64748b;font-weight:normal;"></div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:#22c55e;"></i>
+                </button>
+                <button class="pm-method-btn" onclick="selectPaymentMethod('supercash')" style="border-color:#3b82f6;">
+                    <div style="width:46px;height:46px;background:#3b82f6;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fa-solid fa-credit-card" style="color:white;font-size:1.3rem;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="color:#1d4ed8;">SuperCash</div>
+                        <div id="pm_super_number" style="font-size:0.82rem;color:#64748b;font-weight:normal;"></div>
+                    </div>
+                    <i class="fa-solid fa-chevron-left" style="color:#3b82f6;"></i>
+                </button>
+                <button onclick="closePaymentModal()" style="width:100%;padding:12px;background:#f1f5f9;border:none;border-radius:12px;color:#64748b;cursor:pointer;">&#1573;&#1604;&#1594;&#1575;&#1569;</button>
+            </div>
+
+            <!-- Step 2: Instructions + Upload -->
+            <div id="pm_step_receipt" style="display:none;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                    <button onclick="backToMethodSelect()" style="background:none;border:none;color:#3b82f6;cursor:pointer;font-size:1.3rem;"><i class="fa-solid fa-arrow-right"></i></button>
+                    <h3 id="pm_instr_method" style="margin:0;color:#1e1b4b;">&#1582;&#1591;&#1608;&#1575;&#1578; &#1575;&#1604;&#1583;&#1601;&#1593;</h3>
+                </div>
+                <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:16px;margin-bottom:14px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <div style="width:26px;height:26px;border-radius:50%;background:#3b82f6;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">1</div>
+                        <span>&#1575;&#1601;&#1578;&#1581; &#1578;&#1591;&#1576;&#1610;&#1602; <strong id="pm_instr_method2"></strong></span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <div style="width:26px;height:26px;border-radius:50%;background:#3b82f6;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">2</div>
+                        <span>&#1575;&#1582;&#1578;&#1585; &#1578;&#1581;&#1608;&#1610;&#1604; &#1571;&#1608; &#1583;&#1601;&#1593;</span>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+                        <div style="width:26px;height:26px;border-radius:50%;background:#3b82f6;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">3</div>
+                        <div style="flex:1;"><span>&#1575;&#1604;&#1585;&#1602;&#1605;:</span><div class="pm-copy-box" id="pm_instr_number" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.innerText)"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+                        <div style="width:26px;height:26px;border-radius:50%;background:#3b82f6;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">4</div>
+                        <div style="flex:1;"><span>&#1575;&#1604;&#1605;&#1576;&#1604;&#1594;:</span><div class="pm-copy-box" id="pm_instr_amount"></div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:26px;height:26px;border-radius:50%;background:#3b82f6;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">5</div>
+                        <span>&#1575;&#1603;&#1578;&#1576; &#1585;&#1602;&#1605; &#1607;&#1575;&#1578;&#1601;&#1603; &#1601;&#1610; &#1582;&#1575;&#1606;&#1577; &#1575;&#1604;&#1605;&#1604;&#1575;&#1581;&#1592;&#1577;</span>
+                    </div>
+                </div>
+                <div style="background:#eff6ff;border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.85rem;color:#1e40af;">
+                    <i class="fa-solid fa-circle-info"></i> &#1576;&#1593;&#1583; &#1575;&#1604;&#1583;&#1601;&#1593; &#1575;&#1585;&#1601;&#1593; &#1575;&#1604;&#1573;&#1610;&#1589;&#1575;&#1604; &#1608;&#1587;&#1610;&#1578;&#1605; &#1578;&#1601;&#1593;&#1610;&#1604; &#1581;&#1587;&#1575;&#1576;&#1603; &#1582;&#1604;&#1575;&#1604; 24 &#1587;&#1575;&#1593;&#1577;
+                </div>
+                <label for="pm_receipt_file" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:18px;border:2px dashed #3b82f6;border-radius:12px;cursor:pointer;background:#f8fafc;margin-bottom:12px;">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.5rem;color:#3b82f6;"></i>
+                    <span style="color:#3b82f6;font-weight:bold;">&#1575;&#1585;&#1601;&#1593; &#1589;&#1608;&#1585;&#1577; &#1575;&#1604;&#1573;&#1610;&#1589;&#1575;&#1604;</span>
+                </label>
+                <input type="file" id="pm_receipt_file" accept="image/*" capture="environment" style="display:none;" onchange="previewReceipt(this)">
+                <div id="pm_receipt_preview" style="display:none;text-align:center;margin-bottom:12px;">
+                    <img id="pm_receipt_img" style="max-width:100%;max-height:220px;border-radius:10px;">
+                </div>
+                <button onclick="submitPaymentProof()" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:bold;">
+                    <i class="fa-solid fa-paper-plane"></i> &#1573;&#1585;&#1587;&#1575;&#1604; &#1575;&#1604;&#1573;&#1610;&#1589;&#1575;&#1604; &#1604;&#1604;&#1605;&#1585;&#1575;&#1580;&#1593;&#1577;
+                </button>
+            </div>
+
+            <!-- Step 3: Success -->
+            <div id="pm_step_success" style="display:none;text-align:center;padding:20px 10px;">
+                <div style="width:80px;height:80px;background:#d1fae5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="fa-solid fa-check" style="font-size:2.5rem;color:#10b981;"></i>
+                </div>
+                <h3 style="color:#15803d;margin-bottom:8px;">&#1578;&#1605; &#1575;&#1587;&#1578;&#1604;&#1575;&#1605; &#1591;&#1604;&#1576;&#1603;!</h3>
+                <p style="color:#64748b;margin-bottom:20px;line-height:1.6;">&#1587;&#1610;&#1578;&#1605; &#1605;&#1585;&#1575;&#1580;&#1593;&#1577; &#1575;&#1604;&#1573;&#1610;&#1589;&#1575;&#1604; &#1608;&#1578;&#1601;&#1593;&#1610;&#1604; &#1581;&#1587;&#1575;&#1576;&#1603; &#1582;&#1604;&#1575;&#1604; 24 &#1587;&#1575;&#1593;&#1577;. &#1588;&#1603;&#1585;&#1575;&#1611; &#1604;&#1579;&#1602;&#1578;&#1603;!</p>
+                <button onclick="closePaymentModal()" style="width:100%;padding:13px;background:#10b981;color:white;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:bold;">&#1581;&#1587;&#1606;&#1575;&#1611;&#1548; &#1588;&#1603;&#1585;&#1575;&#1611;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price Settings Modal -->
+    <div id="priceSettingsModal" class="hidden"
+        style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:rgba(0,0,0,0.55);overflow-y:auto;">
+        <div style="background:white;max-width:460px;margin:20px auto;border-radius:20px;padding:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h3 style="margin:0;color:#1e1b4b;font-size:1.1rem;"><i class="fa-solid fa-sliders" style="color:#6366f1;"></i> &#1573;&#1583;&#1575;&#1585;&#1577; &#1575;&#1604;&#1571;&#1587;&#1593;&#1575;&#1585; &#1608;&#1575;&#1604;&#1571;&#1585;&#1602;&#1575;&#1605;</h3>
+                <button onclick="closePriceSettings()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+                        <h4 style="color:#64748b;font-size:0.82rem;margin:0 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;">رسوم الانضمام لمركز الأعمال (د.ع)</h4>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">📐 مكاتب هندسية</label>
+                    <input id="ps_eng" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="50000">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">🏗️ مقاولون</label>
+                    <input id="ps_con" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="35000">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">🛠️ فني وتجهيز</label>
+                    <input id="ps_tech" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="15000">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">⚡ كهربائي</label>
+                    <input id="ps_elec" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="15000">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">🪚 نجار وتأثيث</label>
+                    <input id="ps_carp" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="15000">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">🧱 تجار مواد</label>
+                    <input id="ps_mat" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="35000">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">🏪 محل معتمد</label>
+                    <input id="ps_shop" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="25000">
+                </div>
+                <div>
+                    <!-- empty -->
+                </div>
+            </div>
+
+            <h4 style="color:#64748b;font-size:0.82rem;margin:15px 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;">باقات التمييز وعمولات المنصة (د.ع)</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">⭐ باقة المحترفين Pro</label>
+                    <input id="ps_pro" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="50000">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">👑 باقة النخبة VIP</label>
+                    <input id="ps_vip" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="100000">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">📢 إعلانات مميزة</label>
+                    <input id="ps_ads" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="15000">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.8rem;margin-bottom:4px;">💸 عمولة المهام المجابة</label>
+                    <input id="ps_commission" type="number" class="swal2-input" style="margin:0;width:100%;height:38px;" placeholder="5000">
+                </div>
+            </div>
+
+            <h4 style="color:#64748b;font-size:0.82rem;margin:0 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;">ZainCash</h4>
+            <label style="display:block;font-size:0.88rem;margin-bottom:4px;">&#1585;&#1602;&#1605; &#1575;&#1604;&#1575;&#1587;&#1578;&#1604;&#1575;&#1605;</label>
+            <input id="ps_zain_num" type="tel" class="swal2-input" style="margin:0 0 8px;width:100%;" placeholder="07XXXXXXXXX">
+            <label style="display:block;font-size:0.88rem;margin-bottom:4px;">&#1575;&#1587;&#1605; &#1575;&#1604;&#1605;&#1587;&#1578;&#1604;&#1605;</label>
+            <input id="ps_zain_name" type="text" class="swal2-input" style="margin:0 0 16px;width:100%;">
+            <h4 style="color:#64748b;font-size:0.82rem;margin:0 0 10px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;">SuperCash</h4>
+            <label style="display:block;font-size:0.88rem;margin-bottom:4px;">&#1585;&#1602;&#1605; &#1575;&#1604;&#1575;&#1587;&#1578;&#1604;&#1575;&#1605;</label>
+            <input id="ps_super_num" type="tel" class="swal2-input" style="margin:0 0 8px;width:100%;" placeholder="07XXXXXXXXX">
+            <label style="display:block;font-size:0.88rem;margin-bottom:4px;">&#1575;&#1587;&#1605; &#1575;&#1604;&#1605;&#1587;&#1578;&#1604;&#1605;</label>
+            <input id="ps_super_name" type="text" class="swal2-input" style="margin:0 0 20px;width:100%;">
+            <button onclick="savePriceSettings()" style="width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-weight:bold;">
+                <i class="fa-solid fa-floppy-disk"></i> &#1581;&#1601;&#1592; &#1575;&#1604;&#1573;&#1593;&#1583;&#1575;&#1583;&#1575;&#1578;
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="payment_system.js?v=7"></script>
+    <script src="translations.js?v=2"></script>
+    <script src="data.js?v=1785612421622"></script>
+    <script src="market_sync.js?v=2"></script>
+    <script src="script.js?v=1785615165318"></script>
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="db.js?v=2"></script>
+    <script src="admin_panel.js?v=5"></script>
+    <script src="ads_system.js?v=6"></script>
+    <script>
+
+        // Forms
+        const buildForm = document.getElementById('buildForm');
+        if (buildForm) buildForm.addEventListener('submit', (e) => { e.preventDefault(); calculateCost(); });
+
+        const renovForm = document.getElementById('renovForm');
+        if (renovForm) {
+            renovForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                calculateRenovation();
+                // Force show result
+                document.getElementById('renovResult').style.display = 'block';
+                document.getElementById('renovResult').classList.remove('hidden');
+            });
+        }
+    </script>
+    <!-- AI Scanner Modal -->
+    <div id="scannerOverlay" class="hidden">
+        <div class="scanner-close" onclick="closeAIScanner()"><i class="fa-solid fa-xmark"></i></div>
+        <div class="scanner-hint">وجه الكاميرا نحو المخطط الهندسي (الخريطة)</div>
+        <video id="scannerVideo" autoplay playsinline></video>
+        <div class="scanner-frame">
+            <div class="scanner-laser"></div>
+        </div>
+        <div class="scanner-ui">
+            <div style="width:50px;"></div>
+            <button class="cap-btn" onclick="captureBlueprint()"></button>
+            <button onclick="toggleCameraFlash()"
+                style="background:none; border:none; color:white; font-size:1.5rem;"><i
+                    class="fa-solid fa-bolt"></i></button>
+        </div>
+        <canvas id="scannerCanvas" style="display:none;"></canvas>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="hidden"
+        style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f8fafc; z-index:99990; overflow-y:auto;">
+        <div
+            style="background:white; padding:15px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 10px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100;">
+            <h3 style="margin:0;"><i class="fa-solid fa-user-shield"></i> لوحة الإدارة</h3>
+            <button onclick="document.getElementById('adminModal').classList.add('hidden')"
+                style="background:none; border:none; font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="padding:20px;">
+            <!-- Stats -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+                <div class="glass-card" style="padding:15px; text-align:center; background:#fff;">
+                    <i class="fa-solid fa-users" style="font-size:1.5rem; color:#2563eb; margin-bottom:10px;"></i>
+                    <h2 id="totalUsersStat" style="margin:0; color:#1e1b4b;">0</h2>
+                    <p style="margin:5px 0 0; color:#64748b; font-size:0.8rem;">المشتركين الفعليين</p>
+                </div>
+                <div class="glass-card" style="padding:15px; text-align:center; background:#fff;">
+                    <i class="fa-solid fa-user-clock" style="font-size:1.5rem; color:#f59e0b; margin-bottom:10px;"></i>
+                    <h2 id="pendingReqStat" style="margin:0; color:#1e1b4b;">0</h2>
+                    <p style="margin:5px 0 0; color:#64748b; font-size:0.8rem;">طلبات الانتظار</p>
+                </div>
+            </div>
+
+            <!-- Detailed Stats Trigger -->
+            <button onclick="openAdminStats()" style="width:100%; background:#6366f1; color:white; border:none; border-radius:12px; padding:10px; cursor:pointer; font-size:0.85rem; font-weight:bold; margin-bottom:25px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(99, 102, 241, 0.2);">
+                <i class="fa-solid fa-chart-pie"></i> عرض الإحصائيات التفصيلية والمالية
+            </button>
+
+            <!-- Quick Admin Actions -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:25px;">
+                <button onclick="openAdManager()"
+                    style="background:#3b82f6; color:white; border:none; border-radius:12px; padding:10px; cursor:pointer; font-size:0.85rem; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(59, 130, 246, 0.2);">
+                    <i class="fa-solid fa-rectangle-ad"></i> إدارة الإعلانات
+                </button>
+                <button onclick="openPriceSettings()"
+                    style="background:#10b981; color:white; border:none; border-radius:12px; padding:10px; cursor:pointer; font-size:0.85rem; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 10px rgba(16, 185, 129, 0.2);">
+                    <i class="fa-solid fa-tags"></i> إعدادات الأسعار والدفع
+                </button>
+            </div>
+
+            <!-- Pending Requests -->
+            <h4 style="margin-bottom:15px; color:#1e1b4b;">طلبـات جديـدة <span id="pendingBadge"
+                    style="background:#ef4444; color:white; padding:2px 8px; border-radius:10px; font-size:0.7rem;">0</span>
+            </h4>
+            <div id="adminRequestsList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:30px;">
+                <!-- Injected via JS -->
+                <div style="text-align:center; color:#94a3b8; padding:20px;">لا توجد طلبات جديدة</div>
+            </div>
+
+            <!-- Active Subscribers -->
+            <h4 style="margin-bottom:15px; color:#1e1b4b;">المشتركيـن الحالييـن</h4>
+            <div id="adminSubscribersList" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- ====== Payments Management Section ====== -->
+            <div style="margin-top:30px; border-top:2px solid #e2e8f0; padding-top:20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
+                    <h4 style="margin:0; color:#1e1b4b; font-size:1.05rem;">
+                        <i class="fa-solid fa-wallet" style="color:#10b981;"></i>
+                         &#1573;&#1583;&#1575;&#1585;&#1577; &#1575;&#1604;&#1605;&#1583;&#1601;&#1608;&#1593;&#1575;&#1578;
+                        <span id="paymentPendingBadge" style="background:#ef4444; color:white; padding:2px 8px; border-radius:10px; font-size:0.7rem; display:none; margin-right:6px;">0</span>
+                    </h4>
+                    <button onclick="openPriceSettings()"
+                        style="background:#6366f1; color:white; border:none; border-radius:8px; padding:7px 14px; cursor:pointer; font-size:0.82rem;">
+                        <i class="fa-solid fa-sliders"></i> &#1575;&#1604;&#1571;&#1587;&#1593;&#1575;&#1585;
+                    </button>
+                </div>
+                <div id="adminPaymentsList">
+                    <div style="text-align:center; color:#94a3b8; padding:20px; background:#f8fafc; border-radius:10px;">
+                        <i class="fa-solid fa-inbox" style="font-size:1.8rem; margin-bottom:8px; display:block; opacity:0.5;"></i>
+                        &#1604;&#1575; &#1578;&#1608;&#1580;&#1583; &#1605;&#1583;&#1601;&#1608;&#1593;&#1575;&#1578; &#1605;&#1593;&#1604;&#1602;&#1577;
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- Customer Requests Tracker Modal -->
+        <div id="customerRequestsModal" class="hidden"
+            style="position: fixed; top:0; left:0; width:100%; height:100%; z-index:9999; display:flex; justify-content:center; align-items:flex-end;">
+            <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5);" onclick="document.getElementById('customerRequestsModal').classList.add('hidden')"></div>
+            <div class="sheet-content" style="position:relative; width:100%; max-width:500px; background:white; border-radius:20px 20px 0 0; padding:20px; max-height:85vh; overflow-y:auto;">
+                <button class="close-sheet-abs" onclick="document.getElementById('customerRequestsModal').classList.add('hidden')" style="position:absolute; top:15px; left:15px; background:transparent; border:none; font-size:1.5rem; color:#64748b; cursor:pointer;"><i class="fa-solid fa-times"></i></button>
+                <h3 style="text-align:center; margin-bottom:20px; color:#1e1b4b;"><i class="fa-solid fa-list-check"></i> متابعة طلباتي</h3>
+                
+                <div id="customerPhoneEntry" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+                    <label style="font-weight:bold; font-size:0.9rem;">أدخل رقم هاتفك للبحث عن طلباتك:</label>
+                    <input type="tel" id="myTrackPhone" class="swal2-input" style="margin:0; width:100%;" placeholder="رقم الهاتف الذي سجلت به الطلب">
+                    <button onclick="checkCustomerRequests()" class="cta-button" style="width:100%;">البحث عن طلباتي</button>
+                </div>
+
+                <div id="customerRequestsResults" style="display:flex; flex-direction:column; gap:10px;">
+                    <!-- Results injected here -->
+                </div>
+            </div>
+        </div>
+    
+
+    <style>#statsModal.hidden { display: none !important; }</style>
+    <!-- Stats Modal -->
+    <div id="statsModal" class="hidden"
+        style="position:fixed; top:0; left:0; width:100%; height:100%; background:#f8fafc; z-index:99990; overflow-y:auto;">
+        <div style="background:white; padding:15px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 10px rgba(0,0,0,0.05); position:sticky; top:0; z-index:100;">
+            <h3 style="margin:0; color:#1e1b4b;"><i class="fa-solid fa-chart-pie" style="color:#3b82f6;"></i> &#1573;&#1581;&#1589;&#1575;&#1574;&#1610;&#1575;&#1578; &#1575;&#1604;&#1605;&#1606;&#1589;&#1577;</h3>
+            <button onclick="document.getElementById('statsModal').classList.add('hidden')"
+                style="background:none; border:none; font-size:1.2rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="padding:20px;">
+            <h4 style="margin:0 0 15px; color:#64748b; font-size:0.9rem;">&#1573;&#1580;&#1605;&#1575;&#1604;&#1610; &#1575;&#1604;&#1593;&#1605;&#1608;&#1604;&#1575;&#1578; &#1605;&#1606; &#1575;&#1604;&#1591;&#1604;&#1576;&#1575;&#1578; &#1575;&#1604;&#1605;&#1580;&#1575;&#1576;&#1577;</h4>
+            <div style="background:linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding:20px; border-radius:15px; color:white; margin-bottom:25px; box-shadow:0 10px 15px -3px rgba(59,130,246,0.3);">
+                <p style="margin:0 0 5px; font-size:0.9rem; opacity:0.9;">&#1575;&#1604;&#1605;&#1576;&#1604;&#1594; &#1575;&#1604;&#1603;&#1604;&#1610; &#1575;&#1604;&#1605;&#1578;&#1608;&#1602;&#1593; &#1605;&#1606; &#1575;&#1604;&#1593;&#1605;&#1608;&#1604;&#1575;&#1578;</p>
+                <h2 id="statTotalRevenue" style="margin:0; font-size:2rem; font-weight:bold;">0 IQD</h2>
+            </div>
+
+            <h4 style="margin:0 0 15px; color:#64748b; font-size:0.9rem;">&#1581;&#1575;&#1604;&#1577; &#1575;&#1604;&#1591;&#1604;&#1576;&#1575;&#1578;</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:25px;">
+                <div style="background:white; padding:15px; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 2px 5px rgba(0,0,0,0.02); text-align:center;">
+                    <i class="fa-solid fa-check-double" style="font-size:1.5rem; color:#10b981; margin-bottom:10px;"></i>
+                    <h3 id="statAcceptedReqs" style="margin:0 0 5px; color:#1e293b; font-size:1.5rem;">0</h3>
+                    <p style="margin:0; font-size:0.8rem; color:#64748b;">&#1605;&#1603;&#1578;&#1605;&#1604; &#1608;&#1605;&#1580;&#1575;&#1576;</p>
+                </div>
+                <div style="background:white; padding:15px; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 2px 5px rgba(0,0,0,0.02); text-align:center;">
+                    <i class="fa-solid fa-hourglass-half" style="font-size:1.5rem; color:#f59e0b; margin-bottom:10px;"></i>
+                    <h3 id="statPendingReqs" style="margin:0 0 5px; color:#1e293b; font-size:1.5rem;">0</h3>
+                    <p style="margin:0; font-size:0.8rem; color:#64748b;">&#1605;&#1593;&#1604;&#1602; &#1604;&#1604;&#1570;&#1606;</p>
+                </div>
+            </div>
+
+            <h4 style="margin:0 0 15px; color:#64748b; font-size:0.9rem;">&#1575;&#1604;&#1605;&#1588;&#1578;&#1585;&#1603;&#1610;&#1606; &#1601;&#1610; &#1575;&#1604;&#1605;&#1606;&#1589;&#1577;</h4>
+            <div style="background:white; padding:15px; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 2px 5px rgba(0,0,0,0.02);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <span style="color:#334155;"><i class="fa-solid fa-compass-drafting" style="color:#6366f1;"></i> &#1605;&#1603;&#1575;&#1578;&#1576; &#1607;&#1606;&#1583;&#1587;&#1610;&#1577;</span>
+                    <strong id="statEngOffices">0</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <span style="color:#334155;"><i class="fa-solid fa-hard-hat" style="color:#f59e0b;"></i> &#1605;&#1602;&#1575;&#1608;&#1604;&#1610;&#1606;</span>
+                    <strong id="statContractors">0</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#334155;"><i class="fa-solid fa-cubes" style="color:#8b5cf6;"></i> &#1578;&#1580;&#1575;&#1585; &#1605;&#1608;&#1575;&#1583;</span>
+                    <strong id="statMaterials">0</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="payment_system.js?v=2"></script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log('SW registered:', reg);
+          }).catch(err => {
+            console.log('SW registration failed:', err);
+          });
+        });
+      }
+    </script>
+</body>
+
+</html>

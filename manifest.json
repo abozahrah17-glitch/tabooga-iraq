@@ -1,0 +1,21 @@
+{
+  "name": "طابوقة - Tabooga",
+  "short_name": "طابوقة",
+  "description": "تطبيق طابوقة لحساب تكاليف البناء في العراق",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "assets/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
