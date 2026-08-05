@@ -11,25 +11,32 @@ const MONGO_URI = process.env.MONGO_URI || null;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Dynamic static path resolution
-const possibleAppStablePaths = [
-    path.join(__dirname, 'clean_code/app_stable'),
-    path.join(__dirname, 'clean_code'),
-    path.join(process.cwd(), 'clean_code/app_stable'),
-    path.join(process.cwd(), 'clean_code'),
-    path.join(__dirname, 'app_stable'),
-    path.join(__dirname, '../app_stable'),
-    path.join(process.cwd(), 'app_stable'),
-    process.cwd()
-];
-
-let appStablePath = process.cwd();
-for (const p of possibleAppStablePaths) {
-    if (fs.existsSync(path.join(p, 'index.html'))) {
-        appStablePath = p;
-        break;
+// Universal index.html search
+function findIndexHtml() {
+    const candidates = [
+        path.join(process.cwd(), 'index.html'),
+        path.join(process.cwd(), 'app_stable/index.html'),
+        path.join(process.cwd(), 'clean_code/index.html'),
+        path.join(process.cwd(), 'clean_code/app_stable/index.html'),
+        path.join(__dirname, 'index.html'),
+        path.join(__dirname, 'app_stable/index.html'),
+        path.join(__dirname, '../index.html'),
+        path.join(__dirname, '../app_stable/index.html')
+    ];
+    for (const file of candidates) {
+        if (fs.existsSync(file)) {
+            console.log('✅ Found index.html at:', file);
+            return file;
+        }
     }
+    return null;
 }
+
+const indexFile = findIndexHtml();
+if (indexFile) {
+    app.use(express.static(path.dirname(indexFile)));
+}
+app.use(express.static(process.cwd()));
 
 // Serve light APK
 app.get('/tabooga.apk', (req, res) => {
@@ -43,26 +50,11 @@ app.get('/tabooga.apk', (req, res) => {
     }
 });
 
-// Serve static frontend files
-app.use(express.static(appStablePath));
-
 // Explicit homepage route
 app.get('/', (req, res) => {
-    const possibleIndexPaths = [
-        path.join(appStablePath, 'index.html'),
-        path.join(__dirname, 'clean_code/app_stable/index.html'),
-        path.join(__dirname, 'clean_code/index.html'),
-        path.join(process.cwd(), 'clean_code/app_stable/index.html'),
-        path.join(process.cwd(), 'clean_code/index.html'),
-        path.join(__dirname, 'app_stable/index.html'),
-        path.join(__dirname, '../app_stable/index.html'),
-        path.join(process.cwd(), 'app_stable/index.html'),
-        path.join(process.cwd(), 'index.html')
-    ];
-    for (const indexPath of possibleIndexPaths) {
-        if (fs.existsSync(indexPath)) {
-            return res.sendFile(indexPath);
-        }
+    const found = findIndexHtml();
+    if (found) {
+        return res.sendFile(found);
     }
     res.status(404).send('Tabooga App Frontend files not found');
 });
