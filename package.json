@@ -2,9 +2,9 @@
   "name": "iraq_build_cost",
   "version": "1.0.0",
   "description": "هذا التطبيق مبني باستخدام تقنيات الويب القياسية (HTML, CSS, JavaScript) ولا يحتاج إلى تثبيت برامج معقدة.",
-  "main": "data.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node backend/server.js",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
