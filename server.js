@@ -33,6 +33,23 @@ app.get('/tabooga.apk', (req, res) => {
 // Serve static frontend files
 app.use(express.static(appStablePath));
 
+// Explicit homepage route
+app.get('/', (req, res) => {
+    const possibleIndexPaths = [
+        path.join(appStablePath, 'index.html'),
+        path.join(__dirname, 'app_stable/index.html'),
+        path.join(__dirname, '../app_stable/index.html'),
+        path.join(process.cwd(), 'app_stable/index.html'),
+        path.join(process.cwd(), 'index.html')
+    ];
+    for (const indexPath of possibleIndexPaths) {
+        if (fs.existsSync(indexPath)) {
+            return res.sendFile(indexPath);
+        }
+    }
+    res.status(404).send('Tabooga App Frontend files not found');
+});
+
 // ==========================================
 // DATABASE LAYER (MongoDB OR local JSON)
 // ==========================================
