@@ -322,8 +322,8 @@
                 confirmButtonColor: '#10b981',
                 cancelButtonText: 'إلغاء',
                 preConfirm: (pin) => {
-                    if (pin !== '1011') {
-                        Swal.showValidationMessage('رمز الحماية غير صحيح (1011)');
+                    if (pin !== '1122') {
+                        Swal.showValidationMessage('رمز الحماية غير صحيح (1122)');
                         return false;
                     }
                     return true;
@@ -335,7 +335,7 @@
             });
         } else {
             const pin = prompt('أدخل رمز الحماية لإعدادات الأسعار:');
-            if (pin === '1011') {
+            if (pin === '1122') {
                 doOpen();
             } else if (pin !== null) {
                 alert('رمز الحماية غير صحيح');

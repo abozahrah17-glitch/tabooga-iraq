@@ -1630,8 +1630,8 @@ window.openPriceSettings = function() {
         confirmButtonColor: '#10b981',
         cancelButtonText: 'إلغاء',
         preConfirm: (pin) => {
-            if (pin !== '1011') {
-                Swal.showValidationMessage('رمز الحماية غير صحيح (1011)');
+            if (pin !== '1122') {
+                Swal.showValidationMessage('رمز الحماية غير صحيح (1122)');
                 return false;
             }
             return true;
@@ -4690,8 +4690,8 @@ function openAdminPanel() {
         confirmButtonColor: '#10b981',
         cancelButtonText: 'إلغاء',
         preConfirm: (pin) => {
-            if (pin !== '1122' && pin !== '1234') {
-                Swal.showValidationMessage('رمز الحماية غير صحيح');
+            if (pin !== '1122') {
+                Swal.showValidationMessage('رمز الحماية غير صحيح (1122)');
                 return false;
             }
             return true;
