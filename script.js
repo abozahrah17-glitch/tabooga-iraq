@@ -1896,8 +1896,14 @@ function renderShop() {
         const userProducts = JSON.parse(localStorage.getItem('business_products') || '[]');
         const businessDirectory = typeof window.getUniqueBusinessDirectory === 'function' ? window.getUniqueBusinessDirectory() : JSON.parse(localStorage.getItem('business_directory') || '[]');
 
+        const defaultMerchants = [
+            { id: 'b_mat1', name: 'مؤسسة الرافدين لتوريد مواد البناء', phone: '07700000000', category: 'mat', spec: 'طابوق، أسمنت، حديد، حصو', gov: 'بغداد وكافة المحافظات' },
+            { id: 'b_shop1', name: 'شركة دجلة للتجهيزات الإنشائية', phone: '07700000000', category: 'shop', spec: 'بلوك، سيراميك، مواد إنهاءات', gov: 'بغداد وكافة المحافظات' }
+        ];
+
         // Scope Market strictly to material suppliers, building stores & shops (category === 'mat' || category === 'shop')
-        const approvedMerchants = businessDirectory.filter(b => b.name && (b.category === 'mat' || b.category === 'shop'));
+        const rawMerchants = businessDirectory.filter(b => b.name && (b.category === 'mat' || b.category === 'shop'));
+        const approvedMerchants = rawMerchants.length > 0 ? rawMerchants : defaultMerchants;
 
         let html = '';
 
@@ -2640,7 +2646,7 @@ window.renderBlueprints = function(areaFilter) {
 
 function renderPlans() {
     const grid = document.getElementById('plansGrid');
-    const gallery = document.getElementById('freeBlueprintsGallery') || document.getElementById('blueprintsGallery');
+    const gallery = document.getElementById('blueprintsGrid') || document.getElementById('freeBlueprintsGallery') || document.getElementById('blueprintsGallery') || document.getElementById('opBlueprintsGrid');
     const t = translations[currentLang] || translations['ar'];
 
     const currentFilter = window.currentBlueprintFilter || 'all';
