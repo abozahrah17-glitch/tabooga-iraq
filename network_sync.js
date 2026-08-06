@@ -46,8 +46,26 @@ const originalSetItem = localStorage.setItem;
 localStorage.setItem = function(key, value) {
     originalSetItem.apply(this, arguments);
     
-    // Only sync specific keys to avoid spam
-    const syncKeys = ['registeredUsers', 'public_requests', 'tabooqa_custom_portfolios', 'tabooqa_custom_covers'];
+    // Synchronize 100% of platform keys 24/7 for live real-time sync
+    const syncKeys = [
+        'registeredUsers',
+        'public_requests',
+        'tabooqa_free_blueprints',
+        'business_blueprints',
+        'business_directory',
+        'business_products',
+        'business_portfolio',
+        'tabooqa_custom_portfolios',
+        'tabooqa_custom_covers',
+        'tabooqa_custom_logos',
+        'tabooqa_custom_pro_services',
+        'tabooqa_custom_pro_desc',
+        'tabooqa_custom_pro_cvs',
+        'dynamic_ads',
+        'tabooga_custom_prices',
+        'tabooga_admin_settings'
+    ];
+
     if (syncKeys.includes(key) && window.taboogaSync) {
         try {
             const parsed = JSON.parse(value);
@@ -56,23 +74,35 @@ localStorage.setItem = function(key, value) {
     }
 };
 
-// Initialize
+// Initialize Cloud Server Gateway
 const serverIP = 'tabooga-iraq.onrender.com';
 window.taboogaSync = new NetworkSync(`https://${serverIP}`);
 
-// Initial fetch & Periodic polling
+// 24/7 Live Pulse Sync Engine
 document.addEventListener('DOMContentLoaded', () => {
+    // Initial fetch & render
     window.taboogaSync.fetchState().then(() => {
-        // Refresh UI if needed
-        if(typeof renderPros === 'function') renderPros();
-        if(typeof renderPublicRequests === 'function') renderPublicRequests();
+        if (typeof renderShop === 'function') renderShop();
+        if (typeof renderPros === 'function') renderPros();
+        if (typeof renderPlans === 'function') renderPlans();
+        if (typeof renderPublicRequests === 'function') renderPublicRequests();
+        if (typeof initAllSliders === 'function') initAllSliders();
     });
     
-    // Poll every 10 seconds for real-time multiplayer feel
+    // Live Pulse Sync Every 10 Seconds for Instant Customer & Admin Updates
     setInterval(() => {
-        window.taboogaSync.fetchState().then(() => {
-            if(typeof renderPros === 'function' && document.getElementById('pros').classList.contains('active-view')) renderPros();
-            if(typeof renderPublicRequests === 'function' && document.getElementById('requests-board').classList.contains('active-view')) renderPublicRequests();
-        });
+        if (window.taboogaSync && navigator.onLine) {
+            window.taboogaSync.fetchState().then(() => {
+                const activeShop = document.getElementById('shop') && document.getElementById('shop').classList.contains('active-view');
+                const activePros = document.getElementById('pros') && document.getElementById('pros').classList.contains('active-view');
+                const activeBlueprints = document.getElementById('blueprints') && document.getElementById('blueprints').classList.contains('active-view');
+                const activeRequests = document.getElementById('requests-board') && document.getElementById('requests-board').classList.contains('active-view');
+
+                if (typeof renderShop === 'function' && activeShop) renderShop();
+                if (typeof renderPros === 'function' && activePros) renderPros();
+                if (typeof renderPlans === 'function' && activeBlueprints) renderPlans();
+                if (typeof renderPublicRequests === 'function' && activeRequests) renderPublicRequests();
+            });
+        }
     }, 10000);
 });
