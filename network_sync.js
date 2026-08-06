@@ -3,6 +3,7 @@ class NetworkSync {
     constructor(serverUrl) {
         this.serverUrl = serverUrl;
         this.isOnline = navigator.onLine;
+        this.isSyncingFromRemote = false;
         
         window.addEventListener('online', () => this.isOnline = true);
         window.addEventListener('offline', () => this.isOnline = false);
@@ -11,30 +12,47 @@ class NetworkSync {
     async fetchState() {
         if (!this.isOnline) return;
         try {
-            const response = await fetch(\`\${this.serverUrl}/api/state\`);
+            const response = await fetch(`${this.serverUrl}/api/state`);
             const data = await response.json();
             
+            this.isSyncingFromRemote = true;
+            let updated = false;
+
             // Sync to local storage
             for (let key in data) {
-                if(data[key]) {
-                    localStorage.setItem(key, JSON.stringify(data[key]));
+                if (data[key] !== undefined && data[key] !== null) {
+                    const str = JSON.stringify(data[key]);
+                    if (localStorage.getItem(key) !== str) {
+                        originalSetItem.call(localStorage, key, str);
+                        updated = true;
+                    }
                 }
             }
-            console.log("State synced from server.");
+            this.isSyncingFromRemote = false;
+
+            if (updated) {
+                console.log("⚡ Live State synced from server.");
+                if (typeof renderShop === 'function') renderShop();
+                if (typeof renderPros === 'function') renderPros();
+                if (typeof renderPlans === 'function') renderPlans();
+                if (typeof renderPublicRequests === 'function') renderPublicRequests();
+                if (typeof initAllSliders === 'function') initAllSliders();
+            }
         } catch (error) {
+            this.isSyncingFromRemote = false;
             console.error("Failed to fetch state:", error);
         }
     }
 
     async syncKey(key, value) {
-        if (!this.isOnline) return;
+        if (!this.isOnline || this.isSyncingFromRemote) return;
         try {
-            await fetch(\`\${this.serverUrl}/api/sync\`, {
+            await fetch(`${this.serverUrl}/api/sync`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ key, value })
             });
-            console.log(\`Key \${key} pushed to server.\`);
+            console.log(`Key ${key} pushed to server.`);
         } catch (error) {
             console.error("Failed to sync key:", error);
         }
@@ -66,7 +84,7 @@ localStorage.setItem = function(key, value) {
         'tabooga_admin_settings'
     ];
 
-    if (syncKeys.includes(key) && window.taboogaSync) {
+    if (syncKeys.includes(key) && window.taboogaSync && !window.taboogaSync.isSyncingFromRemote) {
         try {
             const parsed = JSON.parse(value);
             window.taboogaSync.syncKey(key, parsed);
@@ -78,31 +96,15 @@ localStorage.setItem = function(key, value) {
 const serverIP = 'tabooga-iraq.onrender.com';
 window.taboogaSync = new NetworkSync(`https://${serverIP}`);
 
-// 24/7 Live Pulse Sync Engine
+// 24/7 Live Pulse Sync Engine (5-Second Pulse)
 document.addEventListener('DOMContentLoaded', () => {
     // Initial fetch & render
-    window.taboogaSync.fetchState().then(() => {
-        if (typeof renderShop === 'function') renderShop();
-        if (typeof renderPros === 'function') renderPros();
-        if (typeof renderPlans === 'function') renderPlans();
-        if (typeof renderPublicRequests === 'function') renderPublicRequests();
-        if (typeof initAllSliders === 'function') initAllSliders();
-    });
+    window.taboogaSync.fetchState();
     
-    // Live Pulse Sync Every 10 Seconds for Instant Customer & Admin Updates
+    // Live Pulse Sync Every 5 Seconds for Instant Cross-Device Sync
     setInterval(() => {
         if (window.taboogaSync && navigator.onLine) {
-            window.taboogaSync.fetchState().then(() => {
-                const activeShop = document.getElementById('shop') && document.getElementById('shop').classList.contains('active-view');
-                const activePros = document.getElementById('pros') && document.getElementById('pros').classList.contains('active-view');
-                const activeBlueprints = document.getElementById('blueprints') && document.getElementById('blueprints').classList.contains('active-view');
-                const activeRequests = document.getElementById('requests-board') && document.getElementById('requests-board').classList.contains('active-view');
-
-                if (typeof renderShop === 'function' && activeShop) renderShop();
-                if (typeof renderPros === 'function' && activePros) renderPros();
-                if (typeof renderPlans === 'function' && activeBlueprints) renderPlans();
-                if (typeof renderPublicRequests === 'function' && activeRequests) renderPublicRequests();
-            });
+            window.taboogaSync.fetchState();
         }
-    }, 10000);
+    }, 5000);
 });

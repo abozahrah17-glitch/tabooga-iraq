@@ -2631,13 +2631,22 @@ window.renderPros = function() {
     });
 };
 
+window.fixBlueprintImgUrl = function(src) {
+    if (!src) return 'https://tabooga-iraq.onrender.com/assets/images/default_plan.png';
+    if (src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://')) {
+        return src;
+    }
+    const cleanPath = src.replace(/^\/+/, '');
+    return `https://tabooga-iraq.onrender.com/${cleanPath}`;
+};
+
 const defaultBlueprintsList = [
-    { id:'sb1', name:'خريطة 50م² - تصميم عراقي',   area:50,  desc:'بيت عراقي كلاسيكي لمساحة صغيرة مع توزيع استغلالي', image:'assets/images/blueprint_50m.png',   officeName:'المكتب الهندسي المعتمد', officeLogo:'fa-compass-drafting', isSponsored:true, phone:'07700000000' },
-    { id:'sb2', name:'خريطة 100م² - بيت عراقي',  area:100, desc:'تصميم مع استقبال مستقل ومطبخ حار وبارد',   image:'assets/images/blueprint_100m.png',  officeName:'مركز التصاميم العراقية', officeLogo:'fa-building', isSponsored:true, phone:'07700000000' },
-    { id:'sb3', name:'خريطة 150م² - فيلا واسعة', area:150, desc:'منزل عراقي 3 غرف نوم مع كراج وجناح ماستر', image:'assets/images/blueprint_150m.png',  officeName:'دار الهندسة الحديثة', officeLogo:'fa-compass-drafting', isSponsored:true, phone:'07700000000' },
-    { id:'sb4', name:'واجهة منزل كلاسيك 3D',    area:100, desc:'تصميم واجهة حجر وترافيرتين كلاسيكي فخم',     image:'assets/images/facade_classic.png',  officeName:'مكتب الإبداع المعماري', officeLogo:'fa-paint-roller', isSponsored:false, phone:'07700000000' },
-    { id:'sb5', name:'واجهة مودرن ألمنيوم وخشب', area:150, desc:'واجهة فيلا مودرن مع إنارة مخفية وزجاج دبل',   image:'assets/images/facade_modern.png',   officeName:'استوديو الديكور الهندسي', officeLogo:'fa-house-chimney-window', isSponsored:false, phone:'07700000000' },
-    { id:'sb6', name:'مخطط توزيع غرف متكامل',   area:120, desc:'خريطة معمارية تفصيلية جاهزة للتنفيذ',        image:'assets/images/floorplan.png',       officeName:'طابوقة الهندسية', officeLogo:'fa-ruler-combined', isSponsored:false, phone:'07700000000' }
+    { id:'sb1', name:'خريطة 50م² - تصميم عراقي',   area:50,  desc:'بيت عراقي كلاسيكي لمساحة صغيرة مع توزيع استغلالي', image:'https://tabooga-iraq.onrender.com/assets/images/blueprint_50m.png',   officeName:'المكتب الهندسي المعتمد', officeLogo:'fa-compass-drafting', isSponsored:true, phone:'07700000000' },
+    { id:'sb2', name:'خريطة 100م² - بيت عراقي',  area:100, desc:'تصميم مع استقبال مستقل ومطبخ حار وبارد',   image:'https://tabooga-iraq.onrender.com/assets/images/blueprint_100m.png',  officeName:'مركز التصاميم العراقية', officeLogo:'fa-building', isSponsored:true, phone:'07700000000' },
+    { id:'sb3', name:'خريطة 150م² - فيلا واسعة', area:150, desc:'منزل عراقي 3 غرف نوم مع كراج وجناح ماستر', image:'https://tabooga-iraq.onrender.com/assets/images/blueprint_150m.png',  officeName:'دار الهندسة الحديثة', officeLogo:'fa-compass-drafting', isSponsored:true, phone:'07700000000' },
+    { id:'sb4', name:'واجهة منزل كلاسيك 3D',    area:100, desc:'تصميم واجهة حجر وترافيرتين كلاسيكي فخم',     image:'https://tabooga-iraq.onrender.com/assets/images/facade_classic.png',  officeName:'مكتب الإبداع المعماري', officeLogo:'fa-paint-roller', isSponsored:false, phone:'07700000000' },
+    { id:'sb5', name:'واجهة مودرن ألمنيوم وخشب', area:150, desc:'واجهة فيلا مودرن مع إنارة مخفية وزجاج دبل',   image:'https://tabooga-iraq.onrender.com/assets/images/facade_modern.png',   officeName:'استوديو الديكور الهندسي', officeLogo:'fa-house-chimney-window', isSponsored:false, phone:'07700000000' },
+    { id:'sb6', name:'مخطط توزيع غرف متكامل',   area:120, desc:'خريطة معمارية تفصيلية جاهزة للتنفيذ',        image:'https://tabooga-iraq.onrender.com/assets/images/floorplan.png',       officeName:'طابوقة الهندسية', officeLogo:'fa-ruler-combined', isSponsored:false, phone:'07700000000' }
 ];
 
 if (!localStorage.getItem('tabooqa_free_blueprints')) {
@@ -2784,7 +2793,7 @@ window.deleteBlueprint = function(bpId) {
             gallery.innerHTML = allPlans.map(p => `
                 <div class="glass-card blueprint-card" style="padding:0; border:1px solid #e2e8f0; background:white; border-radius:16px; overflow:hidden; position:relative; box-shadow:0 4px 14px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s;">
                     <div style="width:100%; height:140px; background:#f1f5f9; position:relative; overflow:hidden;">
-                        <img src="${p.image || p.img}" onerror="this.onerror=null; this.src='assets/images/default_plan.png'" onclick="viewBlueprintImage('${p.image || p.img}', '${p.name}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;" title="انقر لتكبير ومعاينة الصورة">
+                        <img src="${window.fixBlueprintImgUrl(p.image || p.img)}" onerror="this.onerror=null; this.src='https://tabooga-iraq.onrender.com/assets/images/default_plan.png'" onclick="viewBlueprintImage('${window.fixBlueprintImgUrl(p.image || p.img)}', '${p.name}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;" title="انقر لتكبير ومعاينة الصورة">
                         
                         <!-- Top Badges Overlay -->
                         <div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); color:white; font-size:0.7rem; font-weight:bold; padding:2px 8px; border-radius:10px;">${p.area} م²</div>
