@@ -2745,18 +2745,51 @@ function renderPlans() {
         gallery.style.padding = '10px 0';
         gallery.style.overflowX = 'visible';
 
+window.deleteBlueprint = function(bpId) {
+    Swal.fire({
+        title: '🗑️ حذف الخريطة',
+        text: 'هل أنت متأكد من رغبتك في حذف هذه الخريطة نهائياً من المنصة والتطبيق؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احذف الخريطة',
+        confirmButtonColor: '#ef4444',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let savedFree = JSON.parse(localStorage.getItem('tabooqa_free_blueprints') || '[]');
+            savedFree = savedFree.filter(b => b.id !== bpId);
+            localStorage.setItem('tabooqa_free_blueprints', JSON.stringify(savedFree));
+
+            let bizPlans = JSON.parse(localStorage.getItem('business_blueprints') || '[]');
+            bizPlans = bizPlans.filter(b => ('biz_' + b.id) !== bpId && b.id !== bpId);
+            localStorage.setItem('business_blueprints', JSON.stringify(bizPlans));
+
+            if (window.taboogaSync && typeof window.taboogaSync.syncKey === 'function') {
+                window.taboogaSync.syncKey('tabooqa_free_blueprints', savedFree);
+                window.taboogaSync.syncKey('business_blueprints', bizPlans);
+            }
+
+            renderPlans();
+            Swal.fire({ icon: 'success', title: 'تم الحذف بنجاح! 🎉', text: 'تمت إزالة الخريطة بالكامل وتحديث العرض لجميع الزبائن.' });
+        }
+    });
+};
+
         if (allPlans.length === 0) {
             gallery.innerHTML = '<div style="grid-column:1/-1; padding:20px; color:#64748b; font-size:0.9rem; text-align:center; background:white; border-radius:14px; border:1px solid #e2e8f0;">لا توجد خرائط متاحة لهذه المساحة حالياً</div>';
         } else {
             gallery.innerHTML = allPlans.map(p => `
                 <div class="glass-card blueprint-card" style="padding:0; border:1px solid #e2e8f0; background:white; border-radius:16px; overflow:hidden; position:relative; box-shadow:0 4px 14px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s;">
-                    <div style="width:100%; height:135px; background:#f1f5f9; position:relative; overflow:hidden;">
+                    <div style="width:100%; height:140px; background:#f1f5f9; position:relative; overflow:hidden;">
                         <img src="${p.image || p.img}" onerror="this.onerror=null; this.src='assets/images/default_plan.png'" onclick="viewBlueprintImage('${p.image || p.img}', '${p.name}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;" title="انقر لتكبير ومعاينة الصورة">
                         
                         <!-- Top Badges Overlay -->
                         <div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); color:white; font-size:0.7rem; font-weight:bold; padding:2px 8px; border-radius:10px;">${p.area} م²</div>
                         <button onclick="viewBlueprintImage('${p.image || p.img}', '${p.name}')" style="position:absolute; top:8px; left:8px; background:rgba(255,255,255,0.9); color:#1e293b; border:none; padding:3px 8px; border-radius:10px; font-size:0.68rem; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2);">
                             <i class="fa-solid fa-eye" style="color:#2563eb;"></i> معاينة
+                        </button>
+                        <button onclick="event.stopPropagation(); window.deleteBlueprint('${p.id}')" style="position:absolute; top:8px; left:62px; background:rgba(239,68,68,0.9); color:white; border:none; padding:3px 8px; border-radius:10px; font-size:0.68rem; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2);" title="حذف الخريطة">
+                            <i class="fa-solid fa-trash"></i> حذف
                         </button>
                     </div>
 
