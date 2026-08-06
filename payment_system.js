@@ -285,29 +285,62 @@
 
     // ─── Admin: Price Settings ────────────────────────────────────────
     window.openPriceSettings = function() {
-        const s = getPaymentSettings();
-        document.getElementById('ps_eng').value          = s.fees.eng;
-        document.getElementById('ps_con').value          = s.fees.con;
-        document.getElementById('ps_tech').value         = s.fees.tech !== undefined ? s.fees.tech : 15000;
-        document.getElementById('ps_elec').value         = s.fees.elec !== undefined ? s.fees.elec : 15000;
-        document.getElementById('ps_carp').value         = s.fees.carp !== undefined ? s.fees.carp : 15000;
-        document.getElementById('ps_mat').value          = s.fees.mat;
-        document.getElementById('ps_shop').value         = s.fees.shop !== undefined ? s.fees.shop : 25000;
-        document.getElementById('ps_ads').value          = s.fees.ads;
-        document.getElementById('ps_commission').value   = s.fees.service_commission;
+        const doOpen = function() {
+            const s = getPaymentSettings();
+            document.getElementById('ps_eng').value          = s.fees.eng;
+            document.getElementById('ps_con').value          = s.fees.con;
+            document.getElementById('ps_tech').value         = s.fees.tech !== undefined ? s.fees.tech : 15000;
+            document.getElementById('ps_elec').value         = s.fees.elec !== undefined ? s.fees.elec : 15000;
+            document.getElementById('ps_carp').value         = s.fees.carp !== undefined ? s.fees.carp : 15000;
+            document.getElementById('ps_mat').value          = s.fees.mat;
+            document.getElementById('ps_shop').value         = s.fees.shop !== undefined ? s.fees.shop : 25000;
+            document.getElementById('ps_ads').value          = s.fees.ads;
+            document.getElementById('ps_commission').value   = s.fees.service_commission;
 
-        let planPrices = [];
-        try { planPrices = JSON.parse(localStorage.getItem('plan_prices') || '[]'); } catch(e) {}
-        const proPrice = (planPrices.find(p => p.id === 'pro') || {}).price || 50000;
-        const vipPrice = (planPrices.find(p => p.id === 'vip') || {}).price || 100000;
-        document.getElementById('ps_pro').value          = proPrice;
-        document.getElementById('ps_vip').value          = vipPrice;
+            let planPrices = [];
+            try { planPrices = JSON.parse(localStorage.getItem('plan_prices') || '[]'); } catch(e) {}
+            const proPrice = (planPrices.find(p => p.id === 'pro') || {}).price || 50000;
+            const vipPrice = (planPrices.find(p => p.id === 'vip') || {}).price || 100000;
+            document.getElementById('ps_pro').value          = proPrice;
+            document.getElementById('ps_vip').value          = vipPrice;
 
-        document.getElementById('ps_zain_num').value     = s.zaincash_number;
-        document.getElementById('ps_zain_name').value    = s.zaincash_name;
-        document.getElementById('ps_super_num').value    = s.supercash_number;
-        document.getElementById('ps_super_name').value   = s.supercash_name;
-        document.getElementById('priceSettingsModal').classList.remove('hidden');
+            document.getElementById('ps_zain_num').value     = s.zaincash_number;
+            document.getElementById('ps_zain_name').value    = s.zaincash_name;
+            document.getElementById('ps_super_num').value    = s.supercash_number;
+            document.getElementById('ps_super_name').value   = s.supercash_name;
+            document.getElementById('priceSettingsModal').classList.remove('hidden');
+        };
+
+        if (window.Swal) {
+            Swal.fire({
+                title: '🔒 رمز الحماية لإعدادات الأسعار',
+                text: 'يرجى إدخال رمز الحماية للوصول إلى إعدادات الأسعار',
+                input: 'password',
+                inputAttributes: { maxlength: 10, placeholder: '****', autocapitalize: 'off' },
+                showCancelButton: true,
+                confirmButtonText: 'دخول الإعدادات',
+                confirmButtonColor: '#10b981',
+                cancelButtonText: 'إلغاء',
+                preConfirm: (pin) => {
+                    if (pin !== '1011') {
+                        Swal.showValidationMessage('رمز الحماية غير صحيح (1011)');
+                        return false;
+                    }
+                    return true;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    doOpen();
+                }
+            });
+        } else {
+            const pin = prompt('أدخل رمز الحماية لإعدادات الأسعار:');
+            if (pin === '1011') {
+                doOpen();
+            } else if (pin !== null) {
+                alert('رمز الحماية غير صحيح');
+            }
+        }
     };
 
     window.closePriceSettings = function() {

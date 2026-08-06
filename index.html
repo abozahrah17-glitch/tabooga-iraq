@@ -310,6 +310,10 @@
             }
         }
 
+        html {
+            font-size: 14.5px;
+        }
+
         .app-header {
             height: var(--header-height);
             display: flex;
@@ -322,6 +326,7 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(5px);
             border-bottom: 1px solid var(--border-color);
+            overflow: visible;
         }
 
         .logo {
@@ -329,22 +334,35 @@
             align-items: center;
             gap: 10px;
             color: var(--primary);
+            overflow: visible;
         }
 
         .logo i {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: visible;
+            padding-top: 2px;
         }
 
         .logo-text h1 {
             margin: 0;
             font-size: 1.1rem;
-            font-weight: 800;
+            font-weight: 900;
+            line-height: 1.3;
+            overflow: visible;
+            color: var(--primary);
         }
 
         .logo-text .subtitle {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-light);
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
         }
 
         .lang-switcher select {

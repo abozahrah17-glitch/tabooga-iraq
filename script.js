@@ -1587,18 +1587,18 @@ window.getUniqueBusinessDirectory = function() {
 };
 
 window.openPriceSettings = function() {
-    // Security check: Only Admin can open
+    // Security check: Only Admin can open with 1011
     Swal.fire({
-        title: '🔒 رمز الحماية ولوحة الإدارة',
+        title: '🔒 رمز الحماية لإعدادات الأسعار',
         input: 'password',
         inputAttributes: { maxlength: 6, placeholder: '****', autocapitalize: 'off' },
         showCancelButton: true,
-        confirmButtonText: 'دخول اللوحة',
+        confirmButtonText: 'دخول الإعدادات',
         confirmButtonColor: '#10b981',
         cancelButtonText: 'إلغاء',
         preConfirm: (pin) => {
-            if (pin !== '1122' && pin !== '1234') {
-                Swal.showValidationMessage('رمز الحماية غير صحيح');
+            if (pin !== '1011') {
+                Swal.showValidationMessage('رمز الحماية غير صحيح (1011)');
                 return false;
             }
             return true;
