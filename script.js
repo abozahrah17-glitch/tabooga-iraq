@@ -1811,19 +1811,68 @@ window.updateNotificationBadges = function() {
     }
 };
 
-window.handleNotificationClick = function() {
-    const adminReqs = JSON.parse(localStorage.getItem('admin_requests') || '[]');
-    const pendingAdminCount = adminReqs.filter(r => r.status === 'pending').length;
+window.renderRequests = function() {
+    if (typeof renderPublicRequests === 'function') renderPublicRequests();
+};
 
+window.deletePublicRequest = function(reqId) {
+    Swal.fire({
+        title: '🗑️ حذف طلب المواطن',
+        text: 'هل أنت متأكد من مسح هذا الطلب نهائياً؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احذف',
+        confirmButtonColor: '#ef4444',
+        cancelButtonText: 'إلغاء'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            let pubReqs = JSON.parse(localStorage.getItem('public_requests') || '[]');
+            pubReqs = pubReqs.filter(r => String(r.id) !== String(reqId));
+            localStorage.setItem('public_requests', JSON.stringify(pubReqs));
+            if (window.taboogaSync && typeof window.taboogaSync.syncKey === 'function') {
+                window.taboogaSync.syncKey('public_requests', pubReqs);
+            }
+            if (typeof renderPublicRequests === 'function') renderPublicRequests();
+            renderAdminData();
+            Swal.fire('تم الحذف', 'تم إزالة طلب المواطن بنجاح', 'success');
+        }
+    });
+};
+
+window.viewPublicRequestDetails = function(reqId) {
+    const pubReqs = JSON.parse(localStorage.getItem('public_requests') || '[]');
+    const req = pubReqs.find(r => String(r.id) === String(reqId));
+    if (!req) return;
+
+    Swal.fire({
+        title: `📋 تفاصيل طلب: ${req.title || req.name || 'طلب مواطن'}`,
+        html: `
+            <div style="text-align:right; font-size:0.9rem; line-height:1.6; color:#1e293b;">
+                <p style="margin:4px 0;"><strong>👤 مقدم الطلب:</strong> ${req.name || req.ownerName || 'مواطن'}</p>
+                <p style="margin:4px 0;"><strong>📞 الهاتف:</strong> ${req.phone || 'غير محدد'}</p>
+                <p style="margin:4px 0;"><strong>📍 المحافظة/المدينة:</strong> ${req.governorate || req.city || 'بغداد والمحافظات'}</p>
+                <p style="margin:4px 0;"><strong>📐 المساحة:</strong> ${req.area ? req.area + ' م²' : 'غير محددة'}</p>
+                <p style="margin:4px 0;"><strong>💰 الميزانية المفترضة:</strong> ${req.budget ? req.budget : 'حسب الاتفاق'}</p>
+                <p style="margin:8px 0 4px;"><strong>📝 تفاصيل الطلب الكاملة:</strong></p>
+                <div style="background:#f1f5f9; padding:10px; border-radius:8px; border:1px solid #cbd5e1; white-space:pre-wrap;">${req.desc || req.details || req.title || 'لا تتوفر تفاصيل إضافية'}</div>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'إغلاق',
+        confirmButtonColor: '#6366f1'
+    });
+};
+
+window.handleNotificationClick = function() {
     const publicReqs = JSON.parse(localStorage.getItem('public_requests') || '[]');
     localStorage.setItem('seen_public_requests_count', String(publicReqs.length));
     
     if (typeof window.updateNotificationBadges === 'function') window.updateNotificationBadges();
 
-    if (pendingAdminCount > 0) {
-        if (typeof openAdminPanel === 'function') openAdminPanel();
+    if (typeof openAdminPanel === 'function') {
+        openAdminPanel();
     } else {
-        if (typeof openSubmitRequest === 'function') openSubmitRequest();
+        switchView('requests-board');
     }
 };
 
@@ -4744,6 +4793,50 @@ function renderAdminData() {
                 </div>`;
             });
             listActive.innerHTML = html;
+        }
+    }
+
+    // Render Customer Job Requests (adminPublicRequestsList)
+    const listPublic = document.getElementById('adminPublicRequestsList');
+    const badgeCustomerReqs = document.getElementById('adminCustomerReqsBadge');
+    const pubReqs = JSON.parse(localStorage.getItem('public_requests') || '[]');
+
+    if (badgeCustomerReqs) badgeCustomerReqs.innerText = pubReqs.length;
+
+    if (listPublic) {
+        listPublic.style.display = 'flex';
+        listPublic.style.flexDirection = 'column';
+
+        if (pubReqs.length === 0) {
+            listPublic.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:15px; background:white; border-radius:12px;">لا توجد طلبات مواطنين حالياً</div>';
+        } else {
+            let html = '';
+            pubReqs.forEach(r => {
+                const title = r.title || r.name || 'طلب جديد من مواطن';
+                const phone = r.phone || '---';
+                const gov = r.governorate || r.city || 'بغداد والمحافظات';
+                const area = r.area ? `${r.area} م²` : '';
+                const budget = r.budget ? `• الميزانية: ${r.budget}` : '';
+                const waPhone = String(phone).replace(/[^0-9]/g, '');
+
+                html += `
+                <div style="background:white; padding:14px; border-radius:14px; border-left:4px solid #6366f1; box-shadow:0 2px 6px rgba(0,0,0,0.05); margin-bottom:10px; display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <h4 style="margin:0; font-size:0.95rem; color:#1e293b; font-weight:bold;">${title}</h4>
+                            <p style="margin:3px 0 0; font-size:0.8rem; color:#64748b;">📍 ${gov} ${area ? '• ' + area : ''} ${budget}</p>
+                            <p style="margin:2px 0 0; font-size:0.8rem; color:#475569; font-weight:600;">📞 ${phone}</p>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            ${waPhone ? `<a href="https://wa.me/964${waPhone.replace(/^0/, '')}" target="_blank" style="background:#25D366; color:white; padding:6px 10px; border-radius:8px; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:4px;"><i class="fa-brands fa-whatsapp"></i> واتساب</a>` : ''}
+                            <button onclick="window.viewPublicRequestDetails('${r.id}')" style="background:#e0e7ff; color:#4338ca; border:none; padding:6px 10px; border-radius:8px; font-size:0.75rem; cursor:pointer;" title="معاينة التفاصيل"><i class="fa-solid fa-eye"></i></button>
+                            <button onclick="window.deletePublicRequest('${r.id}')" style="background:#fee2e2; color:#ef4444; border:none; padding:6px 10px; border-radius:8px; font-size:0.75rem; cursor:pointer;" title="حذف الطلب"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    ${r.desc || r.details ? `<div style="background:#f8fafc; padding:8px 10px; border-radius:8px; font-size:0.8rem; color:#334155; border:1px solid #e2e8f0;">${r.desc || r.details}</div>` : ''}
+                </div>`;
+            });
+            listPublic.innerHTML = html;
         }
     }
 }
