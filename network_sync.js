@@ -12,7 +12,15 @@ class NetworkSync {
     async fetchState() {
         if (!this.isOnline) return;
         try {
-            const response = await fetch(`${this.serverUrl}/api/state`);
+            // Cache-busting timestamp + no-store header to bypass Android WebView caching
+            const cacheBuster = `_t=${Date.now()}`;
+            const response = await fetch(`${this.serverUrl}/api/state?${cacheBuster}`, {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
             const data = await response.json();
             
             this.isSyncingFromRemote = true;
@@ -31,7 +39,7 @@ class NetworkSync {
             this.isSyncingFromRemote = false;
 
             if (updated) {
-                console.log("⚡ Live State synced from server.");
+                console.log("⚡ Live State synced from server (Cache-Busted).");
                 if (typeof renderShop === 'function') renderShop();
                 if (typeof renderPros === 'function') renderPros();
                 if (typeof renderPlans === 'function') renderPlans();
@@ -96,15 +104,15 @@ localStorage.setItem = function(key, value) {
 const serverIP = 'tabooga-iraq.onrender.com';
 window.taboogaSync = new NetworkSync(`https://${serverIP}`);
 
-// 24/7 Live Pulse Sync Engine (5-Second Pulse)
+// 24/7 Live Pulse Sync Engine (3-Second Pulse for Instant Live Sync)
 document.addEventListener('DOMContentLoaded', () => {
     // Initial fetch & render
     window.taboogaSync.fetchState();
     
-    // Live Pulse Sync Every 5 Seconds for Instant Cross-Device Sync
+    // Live Pulse Sync Every 3 Seconds for Instant Cross-Device Sync
     setInterval(() => {
         if (window.taboogaSync && navigator.onLine) {
             window.taboogaSync.fetchState();
         }
-    }, 5000);
+    }, 3000);
 });

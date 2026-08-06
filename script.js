@@ -2633,11 +2633,13 @@ window.renderPros = function() {
 
 window.fixBlueprintImgUrl = function(src) {
     if (!src) return 'https://tabooga-iraq.onrender.com/assets/images/default_plan.png';
-    if (src.startsWith('data:') || src.startsWith('http://') || src.startsWith('https://')) {
-        return src;
+    if (src.startsWith('data:')) return src;
+    let url = src;
+    if (!src.startsWith('http://') && !src.startsWith('https://')) {
+        const cleanPath = src.replace(/^\/+/, '');
+        url = `https://tabooga-iraq.onrender.com/${cleanPath}`;
     }
-    const cleanPath = src.replace(/^\/+/, '');
-    return `https://tabooga-iraq.onrender.com/${cleanPath}`;
+    return url;
 };
 
 const defaultBlueprintsList = [
