@@ -1996,67 +1996,60 @@ function renderShop() {
 
         // SECTION 2: GENERAL COMPARATIVE MATERIALS MARKET
         html += `
-            <div style="grid-column: 1 / -1; margin: 10px 0 12px;">
-                <h3 style="margin:0; font-size:1.1rem; color:#1e293b; font-weight:800;">
-                    <i class="fa-solid fa-cubes" style="color:#2563eb; margin-left:6px;"></i> سوق المواد الإنشائية العامة
-                </h3>
+            <div style="grid-column: 1 / -1; margin: 15px 0 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h3 style="margin:0; font-size:1.1rem; color:#1e293b; font-weight:800; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-cubes" style="color:#2563eb;"></i> مؤشر أسعار المواد الإنشائية العامة
+                    </h3>
+                    <span style="font-size:0.72rem; background:#eff6ff; color:#1d4ed8; padding:3px 8px; border-radius:10px; font-weight:bold;">أسعار اليوم</span>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    ${generalProducts.map((p) => {
+                        const priceDisplay = typeof p.price === 'number' ? p.price.toLocaleString() + ' د.ع' : p.price;
+                        const proId = p.id || p.phone || '07700000000';
+                        const isUserProd = p.id && String(p.id).startsWith('p_');
+
+                        return `
+                            <div style="background:white; border-radius:14px; border:1px solid #e2e8f0; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:12px; box-shadow:0 2px 8px rgba(0,0,0,0.03); transition:transform 0.2s ease; cursor:pointer;" onclick="openProProfile('${proId}')">
+                                
+                                <!-- Compact Image Thumbnail -->
+                                <div style="width:58px; height:58px; border-radius:12px; background:url('${p.img}') center/cover no-repeat; flex-shrink:0; position:relative; border:1px solid #f1f5f9;">
+                                    ${isUserProd ? `
+                                        <button onclick="event.stopPropagation(); editProductPrice('${p.id}', ${p.price});" style="position:absolute; bottom:2px; right:2px; background:#f59e0b; color:white; border:none; padding:2px 4px; border-radius:4px; font-size:0.58rem; font-weight:bold; cursor:pointer;">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+
+                                <!-- Middle: Title, Category & Unit -->
+                                <div style="flex-grow:1; min-width:0;">
+                                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                                        <span style="background:#e0f2fe; color:#0369a1; font-size:0.65rem; font-weight:800; padding:1px 6px; border-radius:6px; flex-shrink:0;">${p.category || 'مواد بناء'}</span>
+                                        ${p.unit ? `<span style="font-size:0.68rem; color:#64748b; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">• ${p.unit}</span>` : ''}
+                                    </div>
+                                    <h4 style="margin:0; font-size:0.86rem; color:#0f172a; font-weight:800; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name}</h4>
+                                    <div style="font-size:0.92rem; font-weight:900; color:#059669; margin-top:2px;">${priceDisplay}</div>
+                                </div>
+
+                                <!-- Right: Quick Contact Actions -->
+                                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                    <button onclick="event.stopPropagation(); openProProfile('${proId}');" style="background:#f0f9ff; color:#0284c7; border:1px solid #bae6fd; width:34px; height:34px; border-radius:10px; font-size:0.85rem; cursor:pointer; display:flex; justify-content:center; align-items:center;" title="المعرض">
+                                        <i class="fa-solid fa-id-card"></i>
+                                    </button>
+                                    <button onclick="event.stopPropagation(); contactPro('${p.phone}', 'طلب مادة (${p.name}) من منصة طابوقة');" style="background:linear-gradient(135deg,#25D366,#128C7E); color:white; border:none; padding:7px 12px; border-radius:10px; font-size:0.75rem; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 3px 8px rgba(37,211,102,0.25);">
+                                        <i class="fa-brands fa-whatsapp"></i> تواصل
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
             </div>
         `;
 
-        // Deduplicate general materials list
-        const seenNames = new Set();
-        const combinedGen = [...userProducts, ...defaultProducts];
-        const generalProducts = [];
-        combinedGen.forEach(p => {
-            if (!p || !p.name) return;
-            const key = p.name.trim().toLowerCase();
-            if (!seenNames.has(key)) {
-                seenNames.add(key);
-                generalProducts.push(p);
-            }
-        });
-
-        html += generalProducts.map((p) => {
-            const priceDisplay = typeof p.price === 'number' ? p.price.toLocaleString() + ' د.ع' : p.price;
-            const proId = p.id || p.phone || '07700000000';
-            const isUserProd = p.id && String(p.id).startsWith('p_');
-
-            return `
-                <div class="shop-item glass-card" onclick="openProProfile('${proId}')">
-                    <div style="height:120px; background:url('${p.img}') center/cover no-repeat; position:relative; width:100%;">
-                        <div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); color:white; font-size:0.68rem; padding:2px 8px; border-radius:10px;">${p.category || 'مادة إنشائية'}</div>
-                        
-                        ${isUserProd ? `
-                            <button onclick="event.stopPropagation(); editProductPrice('${p.id}', ${p.price});" style="position:absolute; top:8px; left:8px; background:#f59e0b; color:white; border:none; padding:3px 8px; border-radius:8px; font-size:0.7rem; font-weight:bold; cursor:pointer;" title="تعديل السعر">
-                                <i class="fa-solid fa-pen"></i> تعديل السعر
-                            </button>
-                        ` : ''}
-                    </div>
-
-                    <div style="padding:10px 12px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
-                        <div>
-                            <h4 style="margin:0 0 4px; font-size:0.88rem; color:#1e293b; font-weight:800; line-height:1.35; word-break:break-word;">${p.name}</h4>
-                            <div style="font-size:0.72rem; color:#64748b; margin-bottom:4px;">${p.unit ? 'الوحدة: ' + p.unit : 'معتمد في بغداد والمحافظات'}</div>
-                        </div>
-                        <div style="font-size:0.98rem; font-weight:900; color:#2563eb; margin-top:4px;">
-                            ${priceDisplay}
-                        </div>
-                    </div>
-
-                    <div style="padding:8px 10px 10px; border-top:1px dashed #f1f5f9; display:flex; gap:6px; width:100%;">
-                        <button onclick="event.stopPropagation(); openProProfile('${proId}');" style="flex:1; background:#f0f9ff; color:#0284c7; border:1px solid #bae6fd; padding:7px; border-radius:8px; font-size:0.75rem; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:4px;">
-                            <i class="fa-solid fa-id-card"></i> المعرض
-                        </button>
-                        <button onclick="event.stopPropagation(); contactPro('${p.phone}', 'طلب مادة واستفسار من ${p.name}');" style="flex:1; background:linear-gradient(135deg,#25D366,#128C7E); color:white; border:none; padding:7px; border-radius:8px; font-size:0.75rem; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:4px;">
-                            <i class="fa-brands fa-whatsapp"></i> تواصل
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
         grid.className = 'shop-grid';
-        grid.style.display = '';
+        grid.style.display = 'block';
         grid.style.gridTemplateColumns = '';
         grid.style.gap = '';
         grid.style.padding = '';
