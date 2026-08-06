@@ -987,6 +987,24 @@ window.openBusinessProfile = function(phoneOrId) {
     window.openProProfile(phoneOrId);
 };
 
+window.handleAdminBpFile = function(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const b64 = e.target.result;
+            const hiddenInput = document.getElementById('abImgBase64');
+            const prev = document.getElementById('abImgPreview');
+            const img = document.getElementById('abPreviewImg');
+            if (hiddenInput) hiddenInput.value = b64;
+            if (prev && img) {
+                img.src = b64;
+                prev.style.display = 'block';
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
 window.uploadAdminBlueprint = function() {
     Swal.fire({
         title: '🌟 رفع خريطة مجانية (الأدمن)',
@@ -1003,15 +1021,23 @@ window.uploadAdminBlueprint = function() {
                     <option value="200">200 م²+</option>
                 </select>
 
-                <label style="display:block; margin-bottom:4px; font-weight:bold; font-size:0.85rem;">رابط الصورة أو المسار</label>
-                <input id="abImg" class="swal2-input" placeholder="assets/images/blueprint_100m.png" value="assets/images/blueprint_100m.png" style="margin-bottom:10px;">
+                <label style="display:block; margin-bottom:4px; font-weight:bold; font-size:0.85rem;">📷 اختر صورة الخريطة من الهاتف أو المعرض</label>
+                <input type="file" id="abFileInput" accept="image/*" class="swal2-input" style="height:auto; padding:8px; margin-bottom:10px;" onchange="window.handleAdminBpFile(this)">
+                <input type="hidden" id="abImgBase64" value="">
+
+                <div id="abImgPreview" style="display:none; text-align:center; margin-bottom:10px;">
+                    <img id="abPreviewImg" src="" style="max-height:130px; border-radius:10px; border:2px solid #10b981; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                </div>
+
+                <label style="display:block; margin-bottom:4px; font-weight:bold; font-size:0.85rem;">أو أدخل رابط صورة خارجي (اختياري)</label>
+                <input id="abImg" class="swal2-input" placeholder="أدخل رابط إن وجد..." style="margin-bottom:10px;">
 
                 <label style="display:block; margin-bottom:4px; font-weight:bold; font-size:0.85rem;">الوصف والتفاصيل</label>
                 <textarea id="abDesc" class="swal2-textarea" placeholder="مثال: بيت عراقي مع استقبال ومطبخ حار وبارد" style="margin-top:0;"></textarea>
             </div>
         `,
         focusConfirm: false,
-        confirmButtonText: 'نشر الخريطة فوراً',
+        confirmButtonText: 'نشر الخريطة فوراً 🚀',
         confirmButtonColor: '#10b981',
         showCancelButton: true,
         cancelButtonText: 'إلغاء'
@@ -1019,7 +1045,9 @@ window.uploadAdminBlueprint = function() {
         if (result.isConfirmed) {
             const title = document.getElementById('abTitle').value;
             const area = parseInt(document.getElementById('abArea').value, 10) || 100;
-            const image = document.getElementById('abImg').value || 'assets/images/blueprint_100m.png';
+            const fileBase64 = document.getElementById('abImgBase64') ? document.getElementById('abImgBase64').value : '';
+            const urlImg = document.getElementById('abImg') ? document.getElementById('abImg').value : '';
+            const image = fileBase64 || urlImg || 'assets/images/blueprint_100m.png';
             const desc = document.getElementById('abDesc').value || 'خريطة هندسية معتمدة جاهزة للتنفيذ';
 
             if (!title) {
@@ -1043,8 +1071,13 @@ window.uploadAdminBlueprint = function() {
             existing.unshift(newBp);
             localStorage.setItem('tabooqa_free_blueprints', JSON.stringify(existing));
 
+            // Sync to server so all customers receive the blueprint instantly!
+            if (window.taboogaSync && typeof window.taboogaSync.syncKey === 'function') {
+                window.taboogaSync.syncKey('tabooqa_free_blueprints', existing);
+            }
+
             renderPlans();
-            Swal.fire({ icon:'success', title:'تم النشر', text:'تمت إضافة الخريطة بنجاح وتعرض الآن لجميع الزبائن' });
+            Swal.fire({ icon:'success', title:'تم النشر بنجاح! 🎉', text:'تمت إضافة الخريطة وتعرض الآن لجميع الزبائن على كافة الهواتف والممتصفحات' });
         }
     });
 };
