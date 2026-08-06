@@ -1995,6 +1995,19 @@ function renderShop() {
         }
 
         // SECTION 2: GENERAL COMPARATIVE MATERIALS MARKET
+        // Deduplicate general materials list
+        const seenNames = new Set();
+        const combinedGen = [...userProducts, ...defaultProducts];
+        const generalProducts = [];
+        combinedGen.forEach(p => {
+            if (!p || !p.name) return;
+            const key = p.name.trim().toLowerCase();
+            if (!seenNames.has(key)) {
+                seenNames.add(key);
+                generalProducts.push(p);
+            }
+        });
+
         html += `
             <div style="grid-column: 1 / -1; margin: 15px 0 10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
