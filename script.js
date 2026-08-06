@@ -2533,6 +2533,104 @@ window.deleteAd = function (id) {
     Swal.fire('تم الحذف', 'تم حذف الإعلان بنجاح', 'success').then(() => promptDeleteAd());
 };
 
+window.renderPros = function() {
+    const prosList = document.getElementById('prosList');
+    if (!prosList) return;
+    prosList.innerHTML = '';
+
+    prosList.style.display = 'grid';
+    prosList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(270px, 1fr))';
+    prosList.style.gap = '18px';
+    prosList.style.padding = '10px 0';
+
+    let allPros = typeof constructionData !== 'undefined' && constructionData.pros ? [...constructionData.pros] : [];
+
+    const businessDir = typeof window.getUniqueBusinessDirectory === 'function' ? window.getUniqueBusinessDirectory() : JSON.parse(localStorage.getItem('business_directory') || '[]');
+    
+    // Scope Pros section strictly to professional service providers (category: eng, con, tech, elec, carp)
+    const approvedPros = businessDir
+        .filter(b => b.name && ['eng','con','tech','elec','carp'].includes(b.category))
+        .map(b => {
+            const catMap = {
+                eng:  { label: 'مكتب هندسي', logo: 'fa-compass-drafting', color: '#6366f1' },
+                con:  { label: 'مقاول بناء',  logo: 'fa-hard-hat',         color: '#f59e0b' },
+                tech: { label: 'فني وتجهيز', logo: 'fa-wrench',           color: '#3b82f6' },
+                elec: { label: 'كهربائي',     logo: 'fa-bolt',            color: '#eab308' },
+                carp: { label: 'نجار',        logo: 'fa-hammer',          color: '#8b5cf6' }
+            };
+            const info = catMap[b.category] || { label: 'محترف معتمد', logo: 'fa-user-tie', color: '#3b82f6' };
+            return {
+                id: b.id || b.phone,
+                name: b.name,
+                category: info.label,
+                governorate: 'بغداد والمحافظات',
+                phone: b.phone,
+                logo: info.logo,
+                color: info.color
+            };
+        });
+
+    const defaultProsList = [
+        { id: 'p_eng1', name: 'المكتب الهندسي العراقي للاستشارات', category: 'مكتب هندسي', governorate: 'بغداد وكافة المحافظات', phone: '07700000000', logo: 'fa-compass-drafting', color: '#6366f1' },
+        { id: 'p_con1', name: 'مؤسسة الديار للمقاولات العامة', category: 'مقاول بناء', governorate: 'بغداد وكافة المحافظات', phone: '07700000000', logo: 'fa-hard-hat', color: '#f59e0b' },
+        { id: 'p_tech1', name: 'مركز دجلة للخدمات الفنية والتجهيزات', category: 'فني وتجهيز', governorate: 'بغداد وكافة المحافظات', phone: '07700000000', logo: 'fa-wrench', color: '#3b82f6' }
+    ];
+
+    // Deduplicate combined pros list strictly by name/phone
+    const seenPros = new Set();
+    const combined = approvedPros.length > 0 ? [...approvedPros, ...allPros] : [...defaultProsList, ...allPros];
+    const combinedPros = [];
+    combined.forEach(p => {
+        if (!p || !p.name) return;
+        const key = (p.phone || p.name).trim().toLowerCase();
+        if (!seenPros.has(key)) {
+            seenPros.add(key);
+            combinedPros.push(p);
+        }
+    });
+
+    if (combinedPros.length === 0) {
+        prosList.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; background:white; border-radius:18px; box-shadow:0 4px 15px rgba(0,0,0,0.04);"><i class="fa-solid fa-users" style="font-size:3rem; color:#cbd5e1; margin-bottom:12px;"></i><h3 style="color:#64748b;">لا يوجد محترفون أو مهندسون معروضون حالياً</h3></div>';
+        return;
+    }
+
+    combinedPros.forEach((pro) => {
+        const proId = pro.id || pro.phone || '07700000000';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:white; border-radius:18px; overflow:hidden; border:1px solid #e2e8f0; box-shadow:0 6px 18px rgba(0,0,0,0.04); display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.3s ease; position:relative;';
+        card.onmouseover = () => { card.style.transform = 'translateY(-4px)'; };
+        card.onmouseout = () => { card.style.transform = 'none'; };
+
+        card.innerHTML = `
+            <div style="padding:16px; flex-grow:1;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:48px; height:48px; border-radius:12px; background:${pro.color || '#10b981'}15; color:${pro.color || '#10b981'}; display:flex; justify-content:center; align-items:center; font-size:1.4rem;">
+                            <i class="fa-solid ${pro.logo || 'fa-user-tie'}"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin:0 0 3px; font-size:1.05rem; color:#1e293b; font-weight:800;">${pro.name}</h4>
+                            <span style="font-size:0.75rem; background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:8px; font-weight:bold;">${pro.category}</span>
+                        </div>
+                    </div>
+                    <span style="background:#dcfce7; color:#15803d; font-size:0.68rem; font-weight:bold; padding:3px 8px; border-radius:10px;"><i class="fa-solid fa-circle-check"></i> موثق</span>
+                </div>
+                <p style="margin:0 0 12px; font-size:0.82rem; color:#64748b; line-height:1.5;">تخصص معتمد ومستعد لاستقبال طلبات الزبائن وتوفير الاستشارات والخدمات.</p>
+            </div>
+
+            <div style="padding:10px 16px 14px; border-top:1px dashed #f1f5f9; display:flex; gap:8px;">
+                <button onclick="openProProfile('${proId}')" style="flex:1; background:#f0f9ff; color:#0284c7; border:1px solid #bae6fd; padding:9px; border-radius:10px; font-size:0.8rem; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:4px;">
+                    <i class="fa-solid fa-id-card"></i> البروفايل المعرض
+                </button>
+                <button onclick="contactPro('${pro.phone}', 'طلب خدمة واستفسار من منصة طابوقة');" style="flex:1; background:linear-gradient(135deg,#25D366,#128C7E); color:white; border:none; padding:9px; border-radius:10px; font-size:0.8rem; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:4px; box-shadow:0 3px 8px rgba(37,211,102,0.25);">
+                    <i class="fa-brands fa-whatsapp"></i> تواصل مباشر
+                </button>
+            </div>
+        `;
+        prosList.appendChild(card);
+    });
+};
+
 const defaultBlueprintsList = [
     { id:'sb1', name:'خريطة 50م² - تصميم عراقي',   area:50,  desc:'بيت عراقي كلاسيكي لمساحة صغيرة مع توزيع استغلالي', image:'assets/images/blueprint_50m.png',   officeName:'المكتب الهندسي المعتمد', officeLogo:'fa-compass-drafting', isSponsored:true, phone:'07700000000' },
     { id:'sb2', name:'خريطة 100م² - بيت عراقي',  area:100, desc:'تصميم مع استقبال مستقل ومطبخ حار وبارد',   image:'assets/images/blueprint_100m.png',  officeName:'مركز التصاميم العراقية', officeLogo:'fa-building', isSponsored:true, phone:'07700000000' },
