@@ -1961,7 +1961,7 @@ function renderShop() {
                             <i class="fa-solid fa-boxes-packing" style="color:#10b981;"></i> المواد والبضائع المعروضة باسم (${m.name}):
                         </div>
 
-                        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:12px; margin-top:10px;">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin-top:10px;">
                             ${displayProds.map(p => {
                                 const priceDisplay = typeof p.price === 'number' ? p.price.toLocaleString() + ' د.ع' : p.price;
                                 const isUserProd = p.id && String(p.id).startsWith('p_');
@@ -1976,7 +1976,7 @@ function renderShop() {
                                             ` : ''}
                                         </div>
                                         <div style="padding:10px; flex-grow:1;">
-                                            <h5 style="margin:0 0 4px; font-size:0.85rem; color:#1e293b; font-weight:800; line-height:1.3;">${p.name}</h5>
+                                            <h5 style="margin:0 0 4px; font-size:0.85rem; color:#1e293b; font-weight:800; line-height:1.35; word-break:break-word;">${p.name}</h5>
                                             <div style="font-size:0.7rem; color:#64748b;">${p.unit ? 'الوحدة: ' + p.unit : 'تجهيز مباشر'}</div>
                                             <div style="font-size:0.95rem; font-weight:900; color:#10b981; margin-top:4px;">${priceDisplay}</div>
                                         </div>
@@ -2022,9 +2022,9 @@ function renderShop() {
             const isUserProd = p.id && String(p.id).startsWith('p_');
 
             return `
-                <div class="shop-item glass-card" style="background:white; border-radius:16px; overflow:hidden; border:1px solid #e2e8f0; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 4px 14px rgba(0,0,0,0.05); transition:all 0.3s ease; cursor:pointer;" onclick="openProProfile('${proId}')">
-                    <div style="height:120px; background:url('${p.img}') center/cover no-repeat; position:relative;">
-                        <div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.6); color:white; font-size:0.68rem; padding:2px 8px; border-radius:10px;">${p.category || 'مادة إنشائية'}</div>
+                <div class="shop-item glass-card" onclick="openProProfile('${proId}')">
+                    <div style="height:120px; background:url('${p.img}') center/cover no-repeat; position:relative; width:100%;">
+                        <div style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); color:white; font-size:0.68rem; padding:2px 8px; border-radius:10px;">${p.category || 'مادة إنشائية'}</div>
                         
                         ${isUserProd ? `
                             <button onclick="event.stopPropagation(); editProductPrice('${p.id}', ${p.price});" style="position:absolute; top:8px; left:8px; background:#f59e0b; color:white; border:none; padding:3px 8px; border-radius:8px; font-size:0.7rem; font-weight:bold; cursor:pointer;" title="تعديل السعر">
@@ -2033,19 +2033,21 @@ function renderShop() {
                         ` : ''}
                     </div>
 
-                    <div style="padding:12px; flex-grow:1;">
-                        <h4 style="margin:0 0 5px; font-size:0.92rem; color:#1e293b; font-weight:800; line-height:1.3;">${p.name}</h4>
-                        <div style="font-size:0.75rem; color:#64748b; margin-bottom:6px;">${p.unit ? 'الوحدة: ' + p.unit : 'معتمد في بغداد والمحافظات'}</div>
-                        <div style="font-size:1.05rem; font-weight:900; color:#2563eb;">
+                    <div style="padding:10px 12px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <h4 style="margin:0 0 4px; font-size:0.88rem; color:#1e293b; font-weight:800; line-height:1.35; word-break:break-word;">${p.name}</h4>
+                            <div style="font-size:0.72rem; color:#64748b; margin-bottom:4px;">${p.unit ? 'الوحدة: ' + p.unit : 'معتمد في بغداد والمحافظات'}</div>
+                        </div>
+                        <div style="font-size:0.98rem; font-weight:900; color:#2563eb; margin-top:4px;">
                             ${priceDisplay}
                         </div>
                     </div>
 
-                    <div style="padding:8px 12px 12px; border-top:1px dashed #f1f5f9; display:flex; gap:6px;">
-                        <button onclick="event.stopPropagation(); openProProfile('${proId}');" style="flex:1; background:#f0f9ff; color:#0284c7; border:1px solid #bae6fd; padding:7px; border-radius:8px; font-size:0.75rem; font-weight:bold; cursor:pointer;">
+                    <div style="padding:8px 10px 10px; border-top:1px dashed #f1f5f9; display:flex; gap:6px; width:100%;">
+                        <button onclick="event.stopPropagation(); openProProfile('${proId}');" style="flex:1; background:#f0f9ff; color:#0284c7; border:1px solid #bae6fd; padding:7px; border-radius:8px; font-size:0.75rem; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:4px;">
                             <i class="fa-solid fa-id-card"></i> المعرض
                         </button>
-                        <button onclick="event.stopPropagation(); contactPro('${p.phone}', 'طلب مادة واستفسار من ${p.name}');" style="flex:1; background:linear-gradient(135deg,#25D366,#128C7E); color:white; border:none; padding:7px; border-radius:8px; font-size:0.75rem; font-weight:bold; cursor:pointer;">
+                        <button onclick="event.stopPropagation(); contactPro('${p.phone}', 'طلب مادة واستفسار من ${p.name}');" style="flex:1; background:linear-gradient(135deg,#25D366,#128C7E); color:white; border:none; padding:7px; border-radius:8px; font-size:0.75rem; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:4px;">
                             <i class="fa-brands fa-whatsapp"></i> تواصل
                         </button>
                     </div>
@@ -2053,10 +2055,11 @@ function renderShop() {
             `;
         }).join('');
 
-        grid.style.display = 'grid';
-        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(220px, 1fr))';
-        grid.style.gap = '15px';
-        grid.style.padding = '10px 0';
+        grid.className = 'shop-grid';
+        grid.style.display = '';
+        grid.style.gridTemplateColumns = '';
+        grid.style.gap = '';
+        grid.style.padding = '';
         grid.innerHTML = html;
 
         initAdSlider();
